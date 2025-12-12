@@ -1,6 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace Frends.Pgp.EncryptFile.Definitions;
+﻿namespace Frends.Pgp.EncryptFile.Definitions;
 
 /// <summary>
 /// Result of the task.
@@ -9,7 +7,7 @@ public class Result
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Result"/> class.
-    /// Result of creating a Shopify product.
+    /// Result of the Pgp encryption operation.
     /// </summary>
     /// <param name="success">True if the operation succeeded.</param>
     /// <param name="path">The path to the encrypted file.</param>

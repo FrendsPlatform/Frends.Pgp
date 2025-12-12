@@ -26,6 +26,6 @@ public class PgpEncryptSigningSettings
     /// Hash algorithm to use with signature
     /// </summary>
     /// <example>PgpEncryptSignatureHashAlgorithm.Sha1</example>
-    [DefaultValue(PgpEncryptSignatureHashAlgorithm.Sha1)]
+    [DefaultValue(PgpEncryptSignatureHashAlgorithm.Sha256)]
     public PgpEncryptSignatureHashAlgorithm SignatureHashAlgorithm { get; set; }
 }

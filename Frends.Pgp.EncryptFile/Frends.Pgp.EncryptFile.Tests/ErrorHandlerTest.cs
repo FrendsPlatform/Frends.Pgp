@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Frends.Pgp.EncryptFile.Tests;
 
 [TestFixture]
-public class ErrorHandlerTest: EncryptFileTestBase
+public class ErrorHandlerTest : EncryptFileTestBase
 {
     private Input input;
     private Options options;
@@ -82,7 +82,7 @@ public class ErrorHandlerTest: EncryptFileTestBase
         options = GetOptions();
 
         var ex = Assert.Throws<Exception>(() => Pgp.EncryptFile(input, options, default));
-        Assert.That(ex.Message, Does.Match($"No public key found with Key ID {input.PublicKeyID}"));
+        Assert.That(ex.Message, Does.Contain($"No public key found with Key ID {input.PublicKeyID}"));
 
         input.PublicKeyFile = Path.Combine(GetWorkDir(), "nonexisting.asc");
 

@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace Frends.Pgp.EncryptFile.Tests;
 
 [TestFixture]
-public class UnitTests: EncryptFileTestBase
+public class UnitTests : EncryptFileTestBase
 {
     private Input input;
     private Options options;

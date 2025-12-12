@@ -9,7 +9,7 @@ namespace Frends.Pgp.EncryptFile.Definitions;
 public class Input
 {
     /// <summary>
-    /// Full path to the file for enccryption.
+    /// Full path to the file for encryption.
     /// </summary>
     /// <example>C:\temp\message.txt</example>
     [DisplayFormat(DataFormatString = "Text")]
@@ -25,7 +25,7 @@ public class Input
     /// <summary>
     /// Full path for the public key.
     /// </summary>
-    /// <example>C:\temp\publicKet.asc</example>
+    /// <example>C:\temp\publicKey.asc</example>
     [DisplayFormat(DataFormatString = "Text")]
     public string PublicKeyFile { get; set; }
 

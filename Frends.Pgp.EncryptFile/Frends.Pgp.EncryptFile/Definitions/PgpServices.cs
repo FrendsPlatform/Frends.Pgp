@@ -31,7 +31,7 @@ internal class PgpServices
     /// <returns>Compression chained stream or original source</returns>
     internal static Stream GetCompressionStream(Stream stream, Input input)
     {
-        if (input.UseArmor)
+        if (input.UseCompression)
         {
             CompressionAlgorithmTag compressionTag = input.CompressionType.ConvertEnum<CompressionAlgorithmTag>();
             PgpCompressedDataGenerator compressedDataGenerator = new PgpCompressedDataGenerator(compressionTag);
@@ -123,8 +123,6 @@ internal class PgpServices
     /// <returns>PgpSecretKey of the given privateKey</returns>
     internal static PgpSecretKey ReadSecretKey(string privateKeyFile)
     {
-        PgpSecretKey secretKey = null;
-
         using (Stream secretKeyStream = File.OpenRead(privateKeyFile))
         {
             var secretKeyRingBundle = new PgpSecretKeyRingBundle(PgpUtilities.GetDecoderStream(secretKeyStream));
@@ -134,15 +132,12 @@ internal class PgpServices
                 foreach (PgpSecretKey key in keyRing.GetSecretKeys())
                 {
                     if (key.IsSigningKey)
-                        secretKey = key;
+                        return key;
                 }
             }
 
-            if (secretKey == null)
-                throw new Exception("Wrong private key - Can't find signing key in key ring.");
+            throw new Exception("Wrong private key - Can't find signing key in key ring.");
         }
-
-        return secretKey;
     }
 
     private static void ValidateUsableEncryptionKey(PgpPublicKey key)

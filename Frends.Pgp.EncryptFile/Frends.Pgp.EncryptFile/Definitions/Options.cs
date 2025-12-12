@@ -18,7 +18,7 @@ public class Options
     /// <summary>
     /// Overrides the error message on failure.
     /// </summary>
-    /// <example>Failed to create product.</example>
+    /// <example>Failed to encrypt file.</example>
     [DisplayFormat(DataFormatString = "Text")]
     public string ErrorMessageOnFailure { get; set; }
 }
