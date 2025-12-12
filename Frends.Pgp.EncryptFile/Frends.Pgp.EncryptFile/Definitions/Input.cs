@@ -73,6 +73,13 @@ public class Input
     public PgpEncryptEncryptionAlgorithm EncryptionAlgorithm { get; set; }
 
     /// <summary>
+    /// Buffer size in KB that will be used when encrypting the file.
+    /// </summary>
+    /// <example>64</example>
+    [DefaultValue(64)]
+    public int EncryptBufferSize { get; set; }
+
+    /// <summary>
     /// Should the encrypted file be signed with private key?
     /// </summary>
     /// <example>true</example>

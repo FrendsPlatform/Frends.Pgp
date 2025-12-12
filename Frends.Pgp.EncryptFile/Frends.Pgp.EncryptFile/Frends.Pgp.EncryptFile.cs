@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading;
 using Frends.Pgp.EncryptFile.Definitions;
 using Frends.Pgp.EncryptFile.Helpers;
@@ -14,7 +16,13 @@ namespace Frends.Pgp.EncryptFile;
 /// </summary>
 public static class Pgp
 {
-    internal const int EncryptBufferSize = 1 << 16;
+    static Pgp()
+    {
+        var currentAssembly = Assembly.GetExecutingAssembly();
+        var currentContext = AssemblyLoadContext.GetLoadContext(currentAssembly);
+        if (currentContext != null)
+            currentContext.Unloading += OnPluginUnloadingRequested;
+    }
 
     /// <summary>
     /// Encrypts a file using public or private key. Additionally can be configured to use key rings.
@@ -29,47 +37,57 @@ public static class Pgp
         [PropertyTab] Options options,
         CancellationToken cancellationToken)
     {
-        var inputFile = new FileInfo(input.SourceFilePath);
-
-        if (!inputFile.Exists)
-            ErrorHandler.Handle(new ArgumentException("File to encrypt does not exists."), options.ThrowErrorOnFailure, options.ErrorMessageOnFailure);
-
-        // destination file
-        using (Stream outputStream = File.OpenWrite(input.OutputFilePath))
-
-        // ascii output?
-        using (var armoredStream = input.UseArmor ? new ArmoredOutputStream(outputStream) : outputStream)
-        using (var encryptedOut = PgpServices.GetEncryptionStream(armoredStream, input))
-        using (var compressedOut = PgpServices.GetCompressionStream(encryptedOut, input))
+        try
         {
-            // signature init - if necessary
-            var signatureGenerator = input.SignWithPrivateKey ? PgpServices.InitPgpSignatureGenerator(compressedOut, input) : null;
+            if (string.IsNullOrEmpty(input.SourceFilePath) || !File.Exists(input.SourceFilePath))
+                throw new ArgumentException("File to encrypt does not exists.");
 
-            // writing to configured output
-            var literalDataGenerator = new PgpLiteralDataGenerator();
-            using (var literalOut = literalDataGenerator.Open(compressedOut, PgpLiteralData.Binary, inputFile.Name, inputFile.Length, DateTime.Now))
-            using (var inputStream = inputFile.OpenRead())
+            var inputFile = new FileInfo(input.SourceFilePath);
+
+            // destination file
+            using (Stream outputStream = File.OpenWrite(input.OutputFilePath))
+
+            // ascii output?
+            using (var armoredStream = input.UseArmor ? new ArmoredOutputStream(outputStream) : outputStream)
+            using (var encryptedOut = PgpServices.GetEncryptionStream(armoredStream, input))
+            using (var compressedOut = PgpServices.GetCompressionStream(encryptedOut, input))
             {
-                var buf = new byte[EncryptBufferSize];
-                int len;
+                // signature init - if necessary
+                var signatureGenerator = input.SignWithPrivateKey ? PgpServices.InitPgpSignatureGenerator(compressedOut, input) : null;
 
-                while ((len = inputStream.Read(buf, 0, buf.Length)) > 0)
+                // writing to configured output
+                var literalDataGenerator = new PgpLiteralDataGenerator();
+                using (var literalOut = literalDataGenerator.Open(compressedOut, PgpLiteralData.Binary, inputFile.Name, inputFile.Length, DateTime.Now))
+                using (var inputStream = inputFile.OpenRead())
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    literalOut.Write(buf, 0, len);
-                    if (input.SignWithPrivateKey)
+                    var buf = new byte[input.EncryptBufferSize * 1024];
+                    int len;
+
+                    while ((len = inputStream.Read(buf, 0, buf.Length)) > 0)
                     {
-                        signatureGenerator.Update(buf, 0, len);
+                        cancellationToken.ThrowIfCancellationRequested();
+                        literalOut.Write(buf, 0, len);
+                        if (input.SignWithPrivateKey)
+                            signatureGenerator.Update(buf, 0, len);
                     }
-                }
 
-                if (input.SignWithPrivateKey)
-                {
-                    signatureGenerator.Generate().Encode(compressedOut);
+                    if (input.SignWithPrivateKey)
+                        signatureGenerator.Generate().Encode(compressedOut);
                 }
             }
-        }
 
-        return new Result(true, input.OutputFilePath);
+            return new Result(true, input.OutputFilePath);
+        }
+        catch (Exception ex)
+        {
+            return ErrorHandler.Handle(ex, options.ThrowErrorOnFailure, options.ErrorMessageOnFailure);
+        }
+    }
+
+    private static void OnPluginUnloadingRequested(AssemblyLoadContext obj)
+    {
+        // Dispose resources
+        // Unwire event
+        obj.Unloading -= OnPluginUnloadingRequested;
     }
 }

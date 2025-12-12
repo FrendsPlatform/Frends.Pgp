@@ -1,5 +1,5 @@
-﻿using Frends.Pgp.EncryptFile.Definitions;
-using System;
+﻿using System;
+using Frends.Pgp.EncryptFile.Definitions;
 
 namespace Frends.Pgp.EncryptFile.Helpers;
 

@@ -1,45 +1,24 @@
 using System;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Frends.Pgp.EncryptFile.Definitions;
 using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
 namespace Frends.Pgp.EncryptFile.Tests;
 
 [TestFixture]
-public class UnitTests
+public class UnitTests: EncryptFileTestBase
 {
-    // following keys should not be used on anything except testing as both private key and password are on public GitHub repository.
-    private static readonly string WorkDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../TestData/");
-    private static readonly string PublicKeyFile = "pub.asc";
-    private static readonly string SourceFile = "original_message.txt";
-    private static readonly string EncryptedFile = "encrypted_message.pgp";
-
-    private readonly string privateKey = "privatekey.gpg";
-    private readonly string privateKeyPassword = "veijo666";
-
-    private Options options = new Options();
-    private Input input = new Input();
+    private Input input;
+    private Options options;
 
     [SetUp]
-    public void Setup()
+    public void SetParams()
     {
-        input = new Input
-        {
-            SourceFilePath = Path.Combine(WorkDir, SourceFile),
-            OutputFilePath = Path.Combine(WorkDir, EncryptedFile),
-            PublicKeyFile = Path.Combine(WorkDir, PublicKeyFile),
-            UseIntegrityCheck = true,
-            UseArmor = true,
-            UseCompression = true,
-        };
-    }
-
-    [TearDown]
-    public void DeleteTmpFile()
-    {
-        File.Delete(Path.Combine(WorkDir, EncryptedFile));
+        input = GetInput();
+        options = GetOptions();
     }
 
     [Test]
@@ -75,15 +54,15 @@ public class UnitTests
         input.SignWithPrivateKey = true;
         input.SigningSettings = new PgpEncryptSigningSettings
         {
-            PrivateKeyFile = Path.Combine(WorkDir, privateKey),
-            PrivateKeyPassword = privateKeyPassword,
+            PrivateKeyFile = Path.Combine(GetWorkDir(), GetPrivateKey()),
+            PrivateKeyPassword = GetPrivateKeyPassword(),
         };
 
         var result = Pgp.EncryptFile(input, options, default);
         string textResult = File.ReadAllText(result.FilePath);
 
-        StringAssert.StartsWith($"-----BEGIN PGP MESSAGE-----\r\nVersion: BouncyCastle.NET Cryptography (OpenPGP-only, net6.0) v2.0.0.1\r\n\r\nhIwDzoB5W4N7pN4B", textResult);
-        StringAssert.EndsWith($"-----END PGP MESSAGE-----{Environment.NewLine}", textResult);
+        Assert.That(textResult, Does.StartWith($"-----BEGIN PGP MESSAGE-----\r\nVersion: BouncyCastle.NET Cryptography (OpenPGP-only, net6.0) v2.0.0.1\r\n\r\nhIwDzoB5W4N7pN4B"));
+        Assert.That(textResult, Does.EndWith($"-----END PGP MESSAGE-----{Environment.NewLine}"));
     }
 
     [Test(Description = "Encryption algorithm, compression type and signature hash combination tests")]
@@ -124,8 +103,8 @@ public class UnitTests
         input.SignWithPrivateKey = true;
         input.SigningSettings = new PgpEncryptSigningSettings
         {
-            PrivateKeyFile = Path.Combine(WorkDir, privateKey),
-            PrivateKeyPassword = privateKeyPassword,
+            PrivateKeyFile = Path.Combine(GetWorkDir(), GetPrivateKey()),
+            PrivateKeyPassword = GetPrivateKeyPassword(),
             SignatureHashAlgorithm = signatureHash,
         };
 
@@ -133,8 +112,8 @@ public class UnitTests
         string textResult = File.ReadAllText(result.FilePath);
 
         // result has to start with pgp prefix, version comment and almost static 16 chars
-        StringAssert.IsMatch(@"^-----BEGIN PGP MESSAGE-----[\r\n]+Version: BouncyCastle\.NET Cryptography \(OpenPGP-only, net6\.0\) v2\.0\.0\.1[\r\n]+hI(s|w)DzoB5W4N7pN4B", textResult);
-        StringAssert.EndsWith($"-----END PGP MESSAGE-----{Environment.NewLine}", textResult);
+        Assert.That(textResult, Does.Match(@"^-----BEGIN PGP MESSAGE-----[\r\n]+Version: BouncyCastle\.NET Cryptography \(OpenPGP-only, net6\.0\) v2\.0\.0\.1[\r\n]+hI(s|w)DzoB5W4N7pN4B"));
+        Assert.That(textResult, Does.EndWith($"-----END PGP MESSAGE-----{Environment.NewLine}"));
     }
 
     [Test]
@@ -145,8 +124,8 @@ public class UnitTests
         input.SignWithPrivateKey = true;
         input.SigningSettings = new PgpEncryptSigningSettings
         {
-            PrivateKeyFile = Path.Combine(WorkDir, privateKey),
-            PrivateKeyPassword = privateKeyPassword,
+            PrivateKeyFile = Path.Combine(GetWorkDir(), GetPrivateKey()),
+            PrivateKeyPassword = GetPrivateKeyPassword(),
             SignatureHashAlgorithm = PgpEncryptSignatureHashAlgorithm.Sha256,
         };
 
@@ -154,7 +133,27 @@ public class UnitTests
         string textResult = File.ReadAllText(result.FilePath);
 
         // result has to start with pgp prefix, version comment and almost static 16 chars
-        StringAssert.IsMatch(@"^-----BEGIN PGP MESSAGE-----[\r\n]+Version: BouncyCastle\.NET Cryptography \(OpenPGP-only, net6\.0\) v2\.0\.0\.1[\r\n]+hI(s|w)DzoB5W4N7pN4B", textResult);
-        StringAssert.EndsWith($"-----END PGP MESSAGE-----{Environment.NewLine}", textResult);
+        Assert.That(textResult, Does.Match(@"^-----BEGIN PGP MESSAGE-----[\r\n]+Version: BouncyCastle\.NET Cryptography \(OpenPGP-only, net6\.0\) v2\.0\.0\.1[\r\n]+hI(s|w)DzoB5W4N7pN4B"));
+        Assert.That(textResult, Does.EndWith($"-----END PGP MESSAGE-----{Environment.NewLine}"));
+    }
+
+    [Test]
+    public void EncryptFile_TestWithArmor()
+    {
+        input.UseArmor = false;
+
+        var result = Pgp.EncryptFile(input, options, default);
+        var bytes = File.ReadAllBytes(result.FilePath);
+
+        // 1. File should not start with ASCII armor header
+        var text = Encoding.UTF8.GetString(bytes);
+        Assert.That(text, Does.Not.StartWith("-----BEGIN PGP MESSAGE-----"));
+
+        // 2. File must not be entirely ASCII (binary output always contains non-printable bytes)
+        bool hasNonAscii = bytes.Any(b => b < 32 || b > 126);
+        Assert.That(hasNonAscii, Is.True, "Output should contain binary bytes when UseArmor=false");
+
+        // 3. File should not contain the ASCII ending footer
+        Assert.That(text, Does.Not.Contain("-----END PGP MESSAGE-----"));
     }
 }

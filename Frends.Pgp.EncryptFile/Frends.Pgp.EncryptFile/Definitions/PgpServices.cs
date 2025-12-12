@@ -20,7 +20,7 @@ internal class PgpServices
         PgpPublicKey publicKey = ReadPublicKey(input.PublicKeyFile, input.PublicKeyID);
         PgpEncryptedDataGenerator encryptedDataGenerator = new PgpEncryptedDataGenerator(algorithmTag, input.UseIntegrityCheck, new SecureRandom());
         encryptedDataGenerator.AddMethod(publicKey);
-        return encryptedDataGenerator.Open(stream, new byte[Pgp.EncryptBufferSize]);
+        return encryptedDataGenerator.Open(stream, new byte[input.EncryptBufferSize * 1024]);
     }
 
     /// <summary>
