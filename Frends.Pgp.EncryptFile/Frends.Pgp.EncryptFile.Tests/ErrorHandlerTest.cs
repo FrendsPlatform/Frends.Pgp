@@ -77,12 +77,12 @@ public class ErrorHandlerTest : EncryptFileTestBase
     public void EncryptFile_TestWithInvalidAndMissingPublicKey()
     {
         input = GetInput();
-        input.PublicKeyID = 1;
+        input.PublicKeyId = 1;
 
         options = GetOptions();
 
         var ex = Assert.Throws<Exception>(() => Pgp.EncryptFile(input, options, default));
-        Assert.That(ex.Message, Does.Contain($"No public key found with Key ID {input.PublicKeyID}"));
+        Assert.That(ex.Message, Does.Contain($"No public key found with Key ID {input.PublicKeyId}"));
 
         input.PublicKeyFile = Path.Combine(GetWorkDir(), "nonexisting.asc");
 

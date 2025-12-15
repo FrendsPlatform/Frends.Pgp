@@ -6,34 +6,35 @@ using Org.BouncyCastle.Security;
 
 namespace Frends.Pgp.EncryptFile.Definitions;
 
-internal class PgpServices
+internal static class PgpServices
 {
     /// <summary>
     /// Helper for getting encryption stream
     /// </summary>
     /// <param name="stream">Stream to chain for encryption</param>
-    /// <param name="input">Task settings</param>
+    /// <param name="input">Task input settings</param>
+    /// <param name="options">Task optional settings</param>
     /// <returns>Encryption chained stream</returns>
-    internal static Stream GetEncryptionStream(Stream stream, Input input)
+    internal static Stream GetEncryptionStream(Stream stream, Input input, Options options)
     {
         SymmetricKeyAlgorithmTag algorithmTag = input.EncryptionAlgorithm.ConvertEnum<SymmetricKeyAlgorithmTag>();
-        PgpPublicKey publicKey = ReadPublicKey(input.PublicKeyFile, input.PublicKeyID);
-        PgpEncryptedDataGenerator encryptedDataGenerator = new PgpEncryptedDataGenerator(algorithmTag, input.UseIntegrityCheck, new SecureRandom());
+        PgpPublicKey publicKey = ReadPublicKey(input.PublicKeyFile, input.PublicKeyId);
+        PgpEncryptedDataGenerator encryptedDataGenerator = new PgpEncryptedDataGenerator(algorithmTag, options.UseIntegrityCheck, new SecureRandom());
         encryptedDataGenerator.AddMethod(publicKey);
-        return encryptedDataGenerator.Open(stream, new byte[input.EncryptBufferSize * 1024]);
+        return encryptedDataGenerator.Open(stream, new byte[options.EncryptBufferSize * 1024]);
     }
 
     /// <summary>
     /// Gets compression stream if compression is needed, otherwise returns original stream
     /// </summary>
     /// <param name="stream">Source stream</param>
-    /// <param name="input">Task input</param>
+    /// <param name="options">Task optional settings</param>
     /// <returns>Compression chained stream or original source</returns>
-    internal static Stream GetCompressionStream(Stream stream, Input input)
+    internal static Stream GetCompressionStream(Stream stream, Options options)
     {
-        if (input.UseCompression)
+        if (options.UseCompression)
         {
-            CompressionAlgorithmTag compressionTag = input.CompressionType.ConvertEnum<CompressionAlgorithmTag>();
+            CompressionAlgorithmTag compressionTag = options.CompressionType.ConvertEnum<CompressionAlgorithmTag>();
             PgpCompressedDataGenerator compressedDataGenerator = new PgpCompressedDataGenerator(compressionTag);
             return compressedDataGenerator.Open(stream);
         }
@@ -42,57 +43,19 @@ internal class PgpServices
     }
 
     /// <summary>
-    /// Find first suitable public key for encryption.
-    /// </summary>
-    /// <param name="publicKeyFile">Path to public key file</param>
-    /// <param name="keyId">ID of the key</param>
-    /// <returns>PgpPublicKey from public key file location</returns>
-    internal static PgpPublicKey ReadPublicKey(string publicKeyFile, ulong keyId = 0)
-    {
-        using (Stream publicKeyStream = File.OpenRead(publicKeyFile))
-        using (Stream decoderStream = PgpUtilities.GetDecoderStream(publicKeyStream))
-        {
-            var pgpPub = new PgpPublicKeyRingBundle(decoderStream);
-
-            if (keyId > 0)
-            {
-                var key = pgpPub.GetPublicKey((long)keyId);
-
-                if (key == null)
-                    throw new Exception($"No public key found with Key ID {keyId:X}");
-
-                ValidateUsableEncryptionKey(key);
-
-                return key;
-            }
-
-            foreach (PgpPublicKeyRing kRing in pgpPub.GetKeyRings())
-            {
-                foreach (PgpPublicKey k in kRing.GetPublicKeys())
-                {
-                    if (k.IsEncryptionKey && !k.IsRevoked() && !IsExpired(k))
-                        return k;
-                }
-            }
-        }
-
-        throw new ArgumentException("Can't find valid encryption key in key ring.");
-    }
-
-    /// <summary>
     /// Helper for creating a PgpSignatureGenerator from private key file and its password
     /// </summary>
     /// <param name="stream">Stream to use for signature initialization</param>
-    /// <param name="input">Encryption task input</param>
+    /// <param name="options">Task optional settings</param>
     /// <returns>PgpSignatureGenerator to be used when signing a file</returns>
-    internal static PgpSignatureGenerator InitPgpSignatureGenerator(Stream stream, Input input)
+    internal static PgpSignatureGenerator InitPgpSignatureGenerator(Stream stream, Options options)
     {
-        HashAlgorithmTag hashAlgorithm = input.SigningSettings.SignatureHashAlgorithm.ConvertEnum<HashAlgorithmTag>();
+        HashAlgorithmTag hashAlgorithm = options.SigningSettings.SignatureHashAlgorithm.ConvertEnum<HashAlgorithmTag>();
 
         try
         {
-            PgpSecretKey secretKey = ReadSecretKey(input.SigningSettings.PrivateKeyFile);
-            PgpPrivateKey privateKey = secretKey.ExtractPrivateKey(input.SigningSettings.PrivateKeyPassword.ToCharArray());
+            PgpSecretKey secretKey = ReadSecretKey(options.SigningSettings.PrivateKeyFile);
+            PgpPrivateKey privateKey = secretKey.ExtractPrivateKey(options.SigningSettings.PrivateKeyPassword.ToCharArray());
 
             var pgpSignatureGenerator = new PgpSignatureGenerator(secretKey.PublicKey.Algorithm, hashAlgorithm);
             pgpSignatureGenerator.InitSign(PgpSignature.BinaryDocument, privateKey);
@@ -116,28 +79,47 @@ internal class PgpServices
         }
     }
 
-    /// <summary>
-    /// Reads secret key from given privateKey
-    /// </summary>
-    /// <param name="privateKeyFile">Path to private key file</param>
-    /// <returns>PgpSecretKey of the given privateKey</returns>
-    internal static PgpSecretKey ReadSecretKey(string privateKeyFile)
+    private static PgpSecretKey ReadSecretKey(string privateKeyFile)
     {
-        using (Stream secretKeyStream = File.OpenRead(privateKeyFile))
+        using Stream secretKeyStream = File.OpenRead(privateKeyFile);
+        var secretKeyRingBundle = new PgpSecretKeyRingBundle(PgpUtilities.GetDecoderStream(secretKeyStream));
+
+        foreach (PgpSecretKeyRing keyRing in secretKeyRingBundle.GetKeyRings())
         {
-            var secretKeyRingBundle = new PgpSecretKeyRingBundle(PgpUtilities.GetDecoderStream(secretKeyStream));
-
-            foreach (PgpSecretKeyRing keyRing in secretKeyRingBundle.GetKeyRings())
+            foreach (PgpSecretKey key in keyRing.GetSecretKeys())
             {
-                foreach (PgpSecretKey key in keyRing.GetSecretKeys())
-                {
-                    if (key.IsSigningKey)
-                        return key;
-                }
+                if (key.IsSigningKey)
+                    return key;
             }
-
-            throw new Exception("Wrong private key - Can't find signing key in key ring.");
         }
+
+        throw new Exception("Wrong private key - Can't find signing key in key ring.");
+    }
+
+    private static PgpPublicKey ReadPublicKey(string publicKeyFile, ulong keyId = 0)
+    {
+        using Stream publicKeyStream = File.OpenRead(publicKeyFile);
+        using Stream decoderStream = PgpUtilities.GetDecoderStream(publicKeyStream);
+        var pgpPub = new PgpPublicKeyRingBundle(decoderStream);
+
+        if (keyId > 0)
+        {
+            var key = pgpPub.GetPublicKey((long)keyId) ?? throw new Exception($"No public key found with Key ID {keyId:X}");
+            ValidateUsableEncryptionKey(key);
+
+            return key;
+        }
+
+        foreach (PgpPublicKeyRing kRing in pgpPub.GetKeyRings())
+        {
+            foreach (PgpPublicKey k in kRing.GetPublicKeys())
+            {
+                if (k.IsEncryptionKey && !k.IsRevoked() && !IsExpired(k))
+                    return k;
+            }
+        }
+
+        throw new ArgumentException("Can't find valid encryption key in key ring.");
     }
 
     private static void ValidateUsableEncryptionKey(PgpPublicKey key)

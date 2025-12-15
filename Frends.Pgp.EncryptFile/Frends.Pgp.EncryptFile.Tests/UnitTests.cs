@@ -37,7 +37,7 @@ public class UnitTests : EncryptFileTestBase
     [Test]
     public void EncryptFile_WithPublicKeyID()
     {
-        input.PublicKeyID = 0xce80795b837ba4de;
+        input.PublicKeyId = 0xce80795b837ba4de;
         var result = Pgp.EncryptFile(input, options, default);
 
         var resultContent = File.ReadAllText(result.FilePath);
@@ -51,8 +51,8 @@ public class UnitTests : EncryptFileTestBase
     [Test]
     public void EncryptFile_ShouldSignAndEncryptWithDefaultValues()
     {
-        input.SignWithPrivateKey = true;
-        input.SigningSettings = new PgpEncryptSigningSettings
+        options.SignWithPrivateKey = true;
+        options.SigningSettings = new PgpEncryptSigningSettings
         {
             PrivateKeyFile = Path.Combine(GetWorkDir(), GetPrivateKey()),
             PrivateKeyPassword = GetPrivateKeyPassword(),
@@ -99,9 +99,9 @@ public class UnitTests : EncryptFileTestBase
         PgpEncryptSignatureHashAlgorithm signatureHash)
     {
         input.EncryptionAlgorithm = encryptionAlgorithm;
-        input.CompressionType = compressionType;
-        input.SignWithPrivateKey = true;
-        input.SigningSettings = new PgpEncryptSigningSettings
+        options.CompressionType = compressionType;
+        options.SignWithPrivateKey = true;
+        options.SigningSettings = new PgpEncryptSigningSettings
         {
             PrivateKeyFile = Path.Combine(GetWorkDir(), GetPrivateKey()),
             PrivateKeyPassword = GetPrivateKeyPassword(),
@@ -120,9 +120,9 @@ public class UnitTests : EncryptFileTestBase
     public void EncryptFile_ShouldEncryptWithoutCompression()
     {
         input.EncryptionAlgorithm = PgpEncryptEncryptionAlgorithm.Cast5;
-        input.UseCompression = false;
-        input.SignWithPrivateKey = true;
-        input.SigningSettings = new PgpEncryptSigningSettings
+        options.UseCompression = false;
+        options.SignWithPrivateKey = true;
+        options.SigningSettings = new PgpEncryptSigningSettings
         {
             PrivateKeyFile = Path.Combine(GetWorkDir(), GetPrivateKey()),
             PrivateKeyPassword = GetPrivateKeyPassword(),
@@ -140,7 +140,7 @@ public class UnitTests : EncryptFileTestBase
     [Test]
     public void EncryptFile_TestWithArmor()
     {
-        input.UseArmor = false;
+        options.UseArmor = false;
 
         var result = Pgp.EncryptFile(input, options, default);
         var bytes = File.ReadAllBytes(result.FilePath);

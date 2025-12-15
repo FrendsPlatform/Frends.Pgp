@@ -28,15 +28,15 @@ public class EncryptFileTestBase
             SourceFilePath = Path.Combine(WorkDir, SourceFile),
             OutputFilePath = Path.Combine(WorkDir, EncryptedFile),
             PublicKeyFile = Path.Combine(WorkDir, PublicKeyFile),
-            UseIntegrityCheck = true,
-            UseArmor = true,
-            UseCompression = true,
-            EncryptBufferSize = 64,
         };
 
         options = new Options
         {
             ThrowErrorOnFailure = true,
+            UseIntegrityCheck = true,
+            UseArmor = true,
+            UseCompression = true,
+            EncryptBufferSize = 64,
         };
     }
 

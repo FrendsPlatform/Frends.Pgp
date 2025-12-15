@@ -16,14 +16,6 @@ namespace Frends.Pgp.EncryptFile;
 /// </summary>
 public static class Pgp
 {
-    static Pgp()
-    {
-        var currentAssembly = Assembly.GetExecutingAssembly();
-        var currentContext = AssemblyLoadContext.GetLoadContext(currentAssembly);
-        if (currentContext != null)
-            currentContext.Unloading += OnPluginUnloadingRequested;
-    }
-
     /// <summary>
     /// Encrypts a file using public or private key. Additionally can be configured to use key rings.
     /// [Documentation](https://tasks.frends.com/tasks/frends-tasks/Frends-Pgp-EncryptFile)
@@ -45,36 +37,34 @@ public static class Pgp
             var inputFile = new FileInfo(input.SourceFilePath);
 
             // destination file
-            using (Stream outputStream = File.OpenWrite(input.OutputFilePath))
+            using Stream outputStream = File.OpenWrite(input.OutputFilePath);
 
             // ascii output?
-            using (var armoredStream = input.UseArmor ? new ArmoredOutputStream(outputStream) : outputStream)
-            using (var encryptedOut = PgpServices.GetEncryptionStream(armoredStream, input))
-            using (var compressedOut = PgpServices.GetCompressionStream(encryptedOut, input))
+            using var armoredStream = options.UseArmor ? new ArmoredOutputStream(outputStream) : outputStream;
+            using var encryptedOut = PgpServices.GetEncryptionStream(armoredStream, input, options);
+            using var compressedOut = PgpServices.GetCompressionStream(encryptedOut, options);
+
+            // signature init - if necessary
+            var signatureGenerator = options.SignWithPrivateKey ? PgpServices.InitPgpSignatureGenerator(compressedOut, options) : null;
+
+            // writing to configured output
+            var literalDataGenerator = new PgpLiteralDataGenerator();
+            using var literalOut = literalDataGenerator.Open(compressedOut, PgpLiteralData.Binary, inputFile.Name, inputFile.Length, DateTime.Now);
+            using var inputStream = inputFile.OpenRead();
+
+            var buf = new byte[options.EncryptBufferSize * 1024];
+            int len;
+
+            while ((len = inputStream.Read(buf, 0, buf.Length)) > 0)
             {
-                // signature init - if necessary
-                var signatureGenerator = input.SignWithPrivateKey ? PgpServices.InitPgpSignatureGenerator(compressedOut, input) : null;
-
-                // writing to configured output
-                var literalDataGenerator = new PgpLiteralDataGenerator();
-                using (var literalOut = literalDataGenerator.Open(compressedOut, PgpLiteralData.Binary, inputFile.Name, inputFile.Length, DateTime.Now))
-                using (var inputStream = inputFile.OpenRead())
-                {
-                    var buf = new byte[input.EncryptBufferSize * 1024];
-                    int len;
-
-                    while ((len = inputStream.Read(buf, 0, buf.Length)) > 0)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        literalOut.Write(buf, 0, len);
-                        if (input.SignWithPrivateKey)
-                            signatureGenerator.Update(buf, 0, len);
-                    }
-
-                    if (input.SignWithPrivateKey)
-                        signatureGenerator.Generate().Encode(compressedOut);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+                literalOut.Write(buf, 0, len);
+                if (options.SignWithPrivateKey && signatureGenerator != null)
+                    signatureGenerator.Update(buf, 0, len);
             }
+
+            if (options.SignWithPrivateKey && signatureGenerator != null)
+                signatureGenerator.Generate().Encode(compressedOut);
 
             return new Result(true, input.OutputFilePath);
         }
@@ -82,12 +72,5 @@ public static class Pgp
         {
             return ErrorHandler.Handle(ex, options.ThrowErrorOnFailure, options.ErrorMessageOnFailure);
         }
-    }
-
-    private static void OnPluginUnloadingRequested(AssemblyLoadContext obj)
-    {
-        // Dispose resources
-        // Unwire event
-        obj.Unloading -= OnPluginUnloadingRequested;
     }
 }
