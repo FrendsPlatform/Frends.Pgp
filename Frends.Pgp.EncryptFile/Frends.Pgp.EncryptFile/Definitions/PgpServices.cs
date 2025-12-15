@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Security;
@@ -96,15 +98,24 @@ internal static class PgpServices
         throw new Exception("Wrong private key - Can't find signing key in key ring.");
     }
 
-    private static PgpPublicKey ReadPublicKey(string publicKeyFile, ulong keyId = 0)
+    private static PgpPublicKey ReadPublicKey(string publicKeyFile, string keyId)
     {
         using Stream publicKeyStream = File.OpenRead(publicKeyFile);
         using Stream decoderStream = PgpUtilities.GetDecoderStream(publicKeyStream);
         var pgpPub = new PgpPublicKeyRingBundle(decoderStream);
+        PgpPublicKey key = null;
 
-        if (keyId > 0)
+        if (!string.IsNullOrEmpty(keyId))
         {
-            var key = pgpPub.GetPublicKey((long)keyId) ?? throw new Exception($"No public key found with Key ID {keyId:X}");
+            keyId = keyId.ToLower();
+            if (keyId.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                keyId = keyId.Substring(2);
+
+            if (ulong.TryParse(keyId, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong value))
+                key = pgpPub.GetPublicKey((long)value) ?? throw new Exception($"No public key found with Key ID {keyId:X}");
+            else
+                throw new Exception("Public key is invalid format");
+
             ValidateUsableEncryptionKey(key);
 
             return key;

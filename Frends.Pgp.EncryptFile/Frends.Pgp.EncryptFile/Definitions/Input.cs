@@ -23,6 +23,12 @@ public class Input
     public string OutputFilePath { get; set; }
 
     /// <summary>
+    /// Action for if the output file exists.
+    /// </summary>
+    /// <example>OutputFileExistsAction.Overwrite</example>
+    public OutputFileExistsAction OutputFileExistsAction { get; set; } = OutputFileExistsAction.Overwrite;
+
+    /// <summary>
     /// Full path for the public key.
     /// </summary>
     /// <example>C:\temp\publicKey.asc</example>
@@ -33,8 +39,12 @@ public class Input
     /// ID of the correct key in the key ring (Optional).
     /// If left empty first suitable key in key ring is used.
     /// </summary>
-    /// <example>0x1234567890ABCDEF</example>
-    public ulong PublicKeyId { get; set; }
+    /// <example>
+    /// 0x1234567890ABCDEF
+    /// 1234567890ABCDEF
+    /// </example>
+    [DisplayFormat(DataFormatString = "Text")]
+    public string PublicKeyId { get; set; }
 
     /// <summary>
     /// Encryption algorithm to use

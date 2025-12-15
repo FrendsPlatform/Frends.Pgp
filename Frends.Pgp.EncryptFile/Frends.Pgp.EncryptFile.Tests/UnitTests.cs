@@ -25,9 +25,7 @@ public class UnitTests : EncryptFileTestBase
     public void EncryptFile()
     {
         var result = Pgp.EncryptFile(input, options, default);
-
         var resultContent = File.ReadAllText(result.FilePath);
-
         string expected = "-----BEGINPGPMESSAGE-----Version:BouncyCastle.NETCryptography(OpenPGP-only,net6.0)v2.0.0.1hIwDzoB5W4N7pN4B";
 
         // Rest of the file is random.
@@ -35,14 +33,20 @@ public class UnitTests : EncryptFileTestBase
     }
 
     [Test]
-    public void EncryptFile_WithPublicKeyID()
+    public void EncryptFile_WithPublicKeyID(
+        [Values(
+        "0xce80795b837ba4de",
+        "ce80795b837ba4de",
+        "0xCE80795B837BA4DE",
+        "CE80795B837BA4DE")]
+        string publicKeyId)
     {
-        input.PublicKeyId = 0xce80795b837ba4de;
-        var result = Pgp.EncryptFile(input, options, default);
-
-        var resultContent = File.ReadAllText(result.FilePath);
-
         string expected = "-----BEGINPGPMESSAGE-----Version:BouncyCastle.NETCryptography(OpenPGP-only,net6.0)v2.0.0.1hIwDzoB5W4N7pN4B";
+
+        input.PublicKeyId = publicKeyId;
+
+        var result = Pgp.EncryptFile(input, options, default);
+        var resultContent = File.ReadAllText(result.FilePath);
 
         // Rest of the file is random.
         Assert.That(Regex.Replace(resultContent, @"[\s+]", string.Empty), Does.StartWith(Regex.Replace(expected, @"[\s+]", string.Empty)));

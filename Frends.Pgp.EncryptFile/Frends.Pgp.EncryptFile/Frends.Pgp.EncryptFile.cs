@@ -1,8 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
-using System.Reflection;
-using System.Runtime.Loader;
 using System.Threading;
 using Frends.Pgp.EncryptFile.Definitions;
 using Frends.Pgp.EncryptFile.Helpers;
@@ -36,8 +34,11 @@ public static class Pgp
 
             var inputFile = new FileInfo(input.SourceFilePath);
 
+            if (File.Exists(input.OutputFilePath) && input.OutputFileExistsAction == OutputFileExistsAction.Error)
+                throw new ArgumentException("Output file already exists.");
+
             // destination file
-            using Stream outputStream = File.OpenWrite(input.OutputFilePath);
+            using Stream outputStream = File.Create(input.OutputFilePath);
 
             // ascii output?
             using var armoredStream = options.UseArmor ? new ArmoredOutputStream(outputStream) : outputStream;
@@ -60,11 +61,11 @@ public static class Pgp
                 cancellationToken.ThrowIfCancellationRequested();
                 literalOut.Write(buf, 0, len);
                 if (options.SignWithPrivateKey && signatureGenerator != null)
-                    signatureGenerator.Update(buf, 0, len);
+                    signatureGenerator?.Update(buf, 0, len);
             }
 
             if (options.SignWithPrivateKey && signatureGenerator != null)
-                signatureGenerator.Generate().Encode(compressedOut);
+                signatureGenerator?.Generate().Encode(compressedOut);
 
             return new Result(true, input.OutputFilePath);
         }
