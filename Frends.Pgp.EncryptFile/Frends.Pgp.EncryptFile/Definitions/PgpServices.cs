@@ -57,6 +57,10 @@ internal static class PgpServices
         try
         {
             PgpSecretKey secretKey = ReadSecretKey(options.SigningSettings.PrivateKeyFile);
+
+            if (string.IsNullOrEmpty(options.SigningSettings.PrivateKeyPassword))
+                throw new ArgumentException("Private key password is required for signing.");
+
             PgpPrivateKey privateKey = secretKey.ExtractPrivateKey(options.SigningSettings.PrivateKeyPassword.ToCharArray());
 
             var pgpSignatureGenerator = new PgpSignatureGenerator(secretKey.PublicKey.Algorithm, hashAlgorithm);
