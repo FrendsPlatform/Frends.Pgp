@@ -26,7 +26,7 @@ public class Options
     /// <summary>
     /// Hash algorithm to use with signature
     /// </summary>
-    /// <example>HashAlgorithmType.Sha256</example>
+    /// <example>PgpSignatureHashAlgorithm.Sha256</example>
     [DefaultValue(PgpSignatureHashAlgorithm.Sha256)]
     public PgpSignatureHashAlgorithm SignatureHashAlgorithm { get; set; } = PgpSignatureHashAlgorithm.Sha256;
 

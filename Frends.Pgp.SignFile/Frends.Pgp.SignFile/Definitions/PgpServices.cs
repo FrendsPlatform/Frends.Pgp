@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
-using Frends.Pgp.SignFile.Definitions;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 
-namespace Frends.Pgp.SigntFile.Definitions;
+namespace Frends.Pgp.SignFile.Definitions;
 
 internal static class PgpServices
 {

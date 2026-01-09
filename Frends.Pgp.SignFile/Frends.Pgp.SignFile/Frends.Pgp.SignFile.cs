@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading;
 using Frends.Pgp.SignFile.Definitions;
 using Frends.Pgp.SignFile.Helpers;
-using Frends.Pgp.SigntFile.Definitions;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 
@@ -110,7 +109,7 @@ public static class Pgp
             PgpLiteralData.Binary,
             inputFile.Name,
             inputFile.Length,
-            DateTime.Now);
+            DateTime.UtcNow);
 
         using var inputStream = inputFile.OpenRead();
         var buffer = new byte[16 * 1024];
