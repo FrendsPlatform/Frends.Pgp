@@ -1,0 +1,12 @@
+﻿[
+  {
+    "Task": "Frends.Pgp.SignFile",
+    "Migrations": [
+      {
+        "Version": "1.0.0",
+        "Description": "",
+        "Migration": []
+      }
+    ]
+  }
+]
