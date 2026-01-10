@@ -1,0 +1,12 @@
+﻿[
+  {
+    "Task": "Frends.Pgp.DecryptFile",
+    "Migrations": [
+      {
+        "Version": "1.0.0",
+        "Description": "",
+        "Migration": []
+      }
+    ]
+  }
+]
