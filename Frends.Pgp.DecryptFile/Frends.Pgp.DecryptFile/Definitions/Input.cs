@@ -11,7 +11,7 @@ public class Input
     /// <summary>
     /// Path to the file containing the data to be decrypted.
     /// </summary>
-    /// <example>C:\secretes\message.gpg</example>
+    /// <example>C:\secrets\message.gpg</example>
     [DisplayFormat(DataFormatString = "Text")]
     public string SourceFilePath { get; set; }
 
@@ -23,7 +23,7 @@ public class Input
     public string OutputFilePath { get; set; }
 
     /// <summary>
-    /// Buffer size in KB that will be used when encrypting the file.
+    /// Buffer size in KB that will be used when decrypting the file.
     /// </summary>
     /// <example>64</example>
     [DefaultValue(64)]

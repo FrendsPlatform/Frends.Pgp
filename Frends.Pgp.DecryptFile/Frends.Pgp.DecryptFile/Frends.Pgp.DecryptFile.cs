@@ -30,7 +30,7 @@ public static class Pgp
         try
         {
             if (string.IsNullOrEmpty(input.SourceFilePath) || !File.Exists(input.SourceFilePath))
-                throw new ArgumentException("File to decrypt does not exists.");
+                throw new ArgumentException("File to decrypt does not exist.");
 
             if (File.Exists(input.OutputFilePath))
                 throw new ArgumentException("Output file already exists.");

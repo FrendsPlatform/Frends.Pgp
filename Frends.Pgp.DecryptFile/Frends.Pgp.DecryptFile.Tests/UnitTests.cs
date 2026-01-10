@@ -11,7 +11,7 @@ public class UnitTests
 {
     private const string OriginalMessageFile = "original_message.txt";
     private const string DecryptedFile = "decrypted.txt";
-    private const string EncryptedFile = "encrypted.pgp";
+    private const string EncryptedFile = "encrypted.gpg";
     private const string PrivateKey = "private_key.asc"; // this key should not be used on anything except testing as it is on the public GitHub repository.
     private const string Passphrase = "mat123";
 
@@ -73,7 +73,7 @@ public class UnitTests
         input.SourceFilePath = Path.Combine(WorkDir, "invalid_path.pgp");
         var result = Pgp.DecryptFile(input, options, CancellationToken.None);
         Assert.That(result.Success, Is.False);
-        Assert.That(result.Error.Message, Contains.Substring("File to decrypt does not exists."));
+        Assert.That(result.Error.Message, Contains.Substring("File to decrypt does not exist."));
     }
 
     [Test]
