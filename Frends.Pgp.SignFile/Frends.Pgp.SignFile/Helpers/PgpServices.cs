@@ -1,9 +1,10 @@
 ﻿using System;
 using System.IO;
+using Frends.Pgp.SignFile.Definitions;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 
-namespace Frends.Pgp.SignFile.Definitions;
+namespace Frends.Pgp.SignFile.Helpers;
 
 internal static class PgpServices
 {
@@ -16,8 +17,8 @@ internal static class PgpServices
         HashAlgorithmTag hashTag = hashAlgorithm.ConvertEnum<HashAlgorithmTag>();
         PgpSecretKey secretKey = ReadSecretKey(privateKeySource, useFileKey);
 
-        if (string.IsNullOrEmpty(privateKeyPassword))
-            throw new ArgumentException("Private key password is required for signing.");
+        if (string.IsNullOrWhiteSpace(privateKeyPassword))
+            throw new ArgumentException("Private key password is required for signing.", nameof(privateKeyPassword));
 
         try
         {
@@ -37,7 +38,9 @@ internal static class PgpServices
         }
         catch (PgpException e)
         {
-            throw new Exception("Private key extraction failed, password might be incorrect", e);
+            throw new Exception(
+            $"Private key extraction failed: {e.Message}",
+            e);
         }
     }
 

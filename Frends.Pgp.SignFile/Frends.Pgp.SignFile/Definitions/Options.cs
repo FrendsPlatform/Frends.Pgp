@@ -31,6 +31,36 @@ public class Options
     public PgpSignatureHashAlgorithm SignatureHashAlgorithm { get; set; } = PgpSignatureHashAlgorithm.Sha256;
 
     /// <summary>
+    /// If true, PrivateKey is treated as a file path. If false, treated as raw key string.
+    /// </summary>
+    /// <example>true</example>
+    [DefaultValue(true)]
+    public bool UseFileKey { get; set; } = true;
+
+    /// <summary>
+    /// Private key file path or ASCII-armored private key content
+    /// </summary>
+    /// <example>C:\temp\privatekey.asc</example>
+    [DisplayFormat(DataFormatString = "Text")]
+    [DefaultValue("")]
+    public string PrivateKey { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Password/passphrase for the private key
+    /// </summary>
+    /// <example>MySecurePassphrase123</example>
+    [PasswordPropertyText]
+    [DefaultValue("")]
+    public string PrivateKeyPassword { get; set; }
+
+    /// <summary>
+    /// Buffer size in KB for reading the file during signature generation
+    /// </summary>
+    /// <example>16</example>
+    [DefaultValue(16)]
+    public int SignatureBufferSize { get; set; } = 16;
+
+    /// <summary>
     /// Whether to throw an error on failure.
     /// </summary>
     /// <example>true</example>

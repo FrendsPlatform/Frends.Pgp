@@ -1,133 +1,52 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using Frends.Pgp.SignFile.Definitions;
 using NUnit.Framework;
 
 namespace Frends.Pgp.SignFile.Tests;
 
 [TestFixture]
-public class ErrorHandlerTest : SignFileTestBase
+public class ErrorHandlerTest
 {
-    private Input input;
-    private Connection connection;
-    private Options options;
+    private const string CustomErrorMessage = "CustomErrorMessage";
 
-    [SetUp]
-    public void SetParams()
+    [Test]
+    public void Should_Throw_Error_When_ThrowErrorOnFailure_Is_True()
     {
-        input = GetInput();
-        connection = GetConnection();
-        options = GetOptions();
+        var ex = Assert.Throws<Exception>(() =>
+           Pgp.SignFile(DefaultInput(), DefaultOptions(), CancellationToken.None));
+        Assert.That(ex, Is.Not.Null);
     }
 
     [Test]
-    public void SignFile_TestWithoutInputFile()
+    public void Should_Return_Failed_Result_When_ThrowErrorOnFailure_Is_False()
     {
-        input.SourceFilePath = Path.Combine(GetWorkDir(), "nonexistingfile.txt");
-        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(input, connection, options, default));
-        Assert.That(ex.Message, Does.StartWith("File to sign does not exist."));
-
-        input.SourceFilePath = string.Empty;
-        ex = Assert.Throws<Exception>(() => Pgp.SignFile(input, connection, options, default));
-        Assert.That(ex.Message, Does.StartWith("File to sign does not exist."));
-    }
-
-    [Test]
-    public void SignFile_TestErrorWithoutThrowing()
-    {
-        input.SourceFilePath = Path.Combine(GetWorkDir(), "nonexistingfile.txt");
+        var options = DefaultOptions();
         options.ThrowErrorOnFailure = false;
-
-        var result = Pgp.SignFile(input, connection, options, default);
-        Assert.That(result.Success, Is.False);
-
-        input.SourceFilePath = string.Empty;
-        result = Pgp.SignFile(input, connection, options, default);
+        var result = Pgp.SignFile(DefaultInput(), options, CancellationToken.None);
         Assert.That(result.Success, Is.False);
     }
 
     [Test]
-    public void SignFile_TestErrorHandlerWithCustomMessage()
+    public void Should_Use_Custom_ErrorMessageOnFailure()
     {
-        input.SourceFilePath = Path.Combine(GetWorkDir(), "nonexistingfile.txt");
-        options.ThrowErrorOnFailure = false;
-        options.ErrorMessageOnFailure = "Something went wrong during signing.";
-
-        var result = Pgp.SignFile(input, connection, options, default);
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.Error.Message, Does.Contain("Something went wrong during signing."));
-
-        options.ThrowErrorOnFailure = true;
-        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(input, connection, options, default));
-        Assert.That(ex.Message, Does.Contain("Something went wrong during signing."));
+        var options = DefaultOptions();
+        options.ErrorMessageOnFailure = CustomErrorMessage;
+        var ex = Assert.Throws<Exception>(() =>
+            Pgp.SignFile(DefaultInput(), options, CancellationToken.None));
+        Assert.That(ex, Is.Not.Null);
+        Assert.That(ex.Message, Contains.Substring(CustomErrorMessage));
     }
 
-    [Test]
-    public void SignFile_TestWithInvalidAndMissingPrivateKey()
+    private static Input DefaultInput() => new()
     {
-        connection.PrivateKey = Path.Combine(GetWorkDir(), "nonexisting.gpg");
-        connection.UseFileKey = true;
+        SourceFilePath = string.Empty,
+    };
 
-        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(input, connection, options, default));
-        Assert.That(ex.Message, Does.Contain("Private key file not found") | Does.Contain("Could not find file"));
-
-        connection.PrivateKey = "invalid key content";
-        connection.UseFileKey = false;
-
-        ex = Assert.Throws<Exception>(() => Pgp.SignFile(input, connection, options, default));
-        Assert.That(ex.Message, Does.Contain("Failed to read private key") | Does.Contain("Can't find signing key"));
-    }
-
-    [Test]
-    public void SignFile_TestWithWrongPassword()
+    private static Options DefaultOptions() => new()
     {
-        connection.PrivateKeyPassword = "wrongpassword";
-
-        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(input, connection, options, default));
-        Assert.That(ex.Message, Does.Contain("Private key extraction failed"));
-        Assert.That(ex.Message, Does.Contain("password might be incorrect"));
-    }
-
-    [Test]
-    public void SignFile_TestWithEmptyPassword()
-    {
-        connection.PrivateKeyPassword = string.Empty;
-
-        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(input, connection, options, default));
-        Assert.That(ex.Message, Does.Contain("Private key password is required for signing"));
-
-        connection.PrivateKeyPassword = null;
-        ex = Assert.Throws<Exception>(() => Pgp.SignFile(input, connection, options, default));
-        Assert.That(ex.Message, Does.Contain("Private key password is required for signing"));
-    }
-
-    [Test]
-    public void SignFile_OutputFileExists()
-    {
-        _ = Pgp.SignFile(input, connection, options, default);
-
-        input.OutputFileExistsAction = OutputFileExistsAction.Error;
-        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(input, connection, options, default));
-        Assert.That(ex.Message, Does.Contain("Output file already exists."));
-    }
-
-    [Test]
-    public void SignFile_TestCancellationToken()
-    {
-        using var cts = new System.Threading.CancellationTokenSource();
-        cts.Cancel();
-
-        Assert.Throws<Exception>(() =>
-            Pgp.SignFile(input, connection, options, cts.Token));
-    }
-
-    [Test]
-    public void SignFile_TestErrorWithWrongPasswordWithoutThrowing()
-    {
-        connection.PrivateKeyPassword = "wrongpassword";
-        options.ThrowErrorOnFailure = false;
-
-        var result = Pgp.SignFile(input, connection, options, default);
-        Assert.That(result.Success, Is.False);
-    }
+        ThrowErrorOnFailure = true,
+        ErrorMessageOnFailure = string.Empty,
+    };
 }

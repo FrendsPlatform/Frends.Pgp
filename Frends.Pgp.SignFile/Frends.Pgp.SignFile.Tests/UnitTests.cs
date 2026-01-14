@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Frends.Pgp.SignFile.Definitions;
 using NUnit.Framework;
 
@@ -10,22 +11,10 @@ namespace Frends.Pgp.SignFile.Tests;
 [TestFixture]
 public class UnitTests : SignFileTestBase
 {
-    private Input input;
-    private Connection connection;
-    private Options options;
-
-    [SetUp]
-    public void SetParams()
-    {
-        input = GetInput();
-        connection = GetConnection();
-        options = GetOptions();
-    }
-
     [Test]
     public void SignFile_ShouldCreateDetachedSignature()
     {
-        var result = Pgp.SignFile(input, connection, options, default);
+        var result = Pgp.SignFile(Input, Options, CancellationToken.None);
 
         Assert.That(result.Success, Is.True);
         Assert.That(File.Exists(result.FilePath), Is.True);
@@ -38,10 +27,10 @@ public class UnitTests : SignFileTestBase
     [Test]
     public void SignFile_ShouldCreateAttachedSignature()
     {
-        input.OutputFilePath = Path.Combine(GetWorkDir(), "message.txt.pgp");
-        options.DetachedSignature = false;
+        Input.OutputFilePath = Path.Combine(WorkDir, "message.txt.pgp");
+        Options.DetachedSignature = false;
 
-        var result = Pgp.SignFile(input, connection, options, default);
+        var result = Pgp.SignFile(Input, Options, CancellationToken.None);
 
         Assert.That(result.Success, Is.True);
         Assert.That(File.Exists(result.FilePath), Is.True);
@@ -54,9 +43,9 @@ public class UnitTests : SignFileTestBase
     [Test]
     public void SignFile_ShouldCreateBinarySignature()
     {
-        options.UseArmor = false;
+        Options.UseArmor = false;
 
-        var result = Pgp.SignFile(input, connection, options, default);
+        var result = Pgp.SignFile(Input, Options, CancellationToken.None);
         var bytes = File.ReadAllBytes(result.FilePath);
         var text = Encoding.UTF8.GetString(bytes);
 
@@ -81,9 +70,9 @@ public class UnitTests : SignFileTestBase
         PgpSignatureHashAlgorithm.Sha512)]
         PgpSignatureHashAlgorithm hashAlgorithm)
     {
-        options.SignatureHashAlgorithm = hashAlgorithm;
+        Options.SignatureHashAlgorithm = hashAlgorithm;
 
-        var result = Pgp.SignFile(input, connection, options, default);
+        var result = Pgp.SignFile(Input, Options, CancellationToken.None);
         var signatureContent = File.ReadAllText(result.FilePath);
 
         Assert.That(result.Success, Is.True);
@@ -95,10 +84,10 @@ public class UnitTests : SignFileTestBase
     [Test]
     public void SignFile_ShouldOverwriteWhenOutputFileExistsAndActionIsOverwrite()
     {
-        File.WriteAllText(input.OutputFilePath, "existing content");
-        input.OutputFileExistsAction = OutputFileExistsAction.Overwrite;
+        File.WriteAllText(Input.OutputFilePath, "existing content");
+        Input.OutputFileExistsAction = OutputFileExistsAction.Overwrite;
 
-        var result = Pgp.SignFile(input, connection, options, default);
+        var result = Pgp.SignFile(Input, Options, CancellationToken.None);
 
         Assert.That(result.Success, Is.True);
         var signatureContent = File.ReadAllText(result.FilePath);
@@ -109,12 +98,12 @@ public class UnitTests : SignFileTestBase
     [Test]
     public void SignFile_ShouldWorkWithRawKeyString()
     {
-        string privateKeyContent = File.ReadAllText(Path.Combine(GetWorkDir(), GetPrivateKeyFile()));
+        string privateKeyContent = File.ReadAllText(Path.Combine(WorkDir, PrivateKeyFile));
 
-        connection.PrivateKey = privateKeyContent;
-        connection.UseFileKey = false;
+        Options.PrivateKey = privateKeyContent;
+        Options.UseFileKey = false;
 
-        var result = Pgp.SignFile(input, connection, options, default);
+        var result = Pgp.SignFile(Input, Options, CancellationToken.None);
 
         Assert.That(result.Success, Is.True);
         var signatureContent = File.ReadAllText(result.FilePath);
@@ -124,12 +113,12 @@ public class UnitTests : SignFileTestBase
     [Test]
     public void SignFile_DetachedAndAttachedSignaturesShouldBeDifferent()
     {
-        var detachedResult = Pgp.SignFile(input, connection, options, default);
+        var detachedResult = Pgp.SignFile(Input, Options, CancellationToken.None);
         var detachedContent = File.ReadAllText(detachedResult.FilePath);
 
-        input.OutputFilePath = Path.Combine(GetWorkDir(), "message.txt.pgp");
-        options.DetachedSignature = false;
-        var attachedResult = Pgp.SignFile(input, connection, options, default);
+        Input.OutputFilePath = Path.Combine(WorkDir, "message.txt.pgp");
+        Options.DetachedSignature = false;
+        var attachedResult = Pgp.SignFile(Input, Options, CancellationToken.None);
         var attachedContent = File.ReadAllText(attachedResult.FilePath);
 
         Assert.That(detachedContent, Does.StartWith("-----BEGIN PGP SIGNATURE-----"));
@@ -137,5 +126,52 @@ public class UnitTests : SignFileTestBase
         Assert.That(attachedContent, Does.StartWith("-----BEGIN PGP MESSAGE-----"));
 
         Assert.That(attachedContent.Length, Is.GreaterThan(detachedContent.Length));
+    }
+
+    [Test]
+    public void SignFile_TestWithoutInputFile()
+    {
+        Input.SourceFilePath = Path.Combine(WorkDir, "nonexistingfile.txt");
+        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        Assert.That(ex.Message, Does.StartWith("File to sign does not exist."));
+
+        Input.SourceFilePath = string.Empty;
+        ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        Assert.That(ex.Message, Does.StartWith("File to sign does not exist."));
+    }
+
+    [Test]
+    public void SignFile_TestWithInvalidAndMissingPrivateKey()
+    {
+        Options.PrivateKey = Path.Combine(WorkDir, "nonexisting.gpg");
+        Options.UseFileKey = true;
+
+        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        Assert.That(ex.Message, Does.Contain("Private key file not found") | Does.Contain("Could not find file"));
+
+        Options.PrivateKey = "invalid key content";
+        Options.UseFileKey = false;
+
+        ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        Assert.That(ex.Message, Does.Contain("Failed to read private key") | Does.Contain("Can't find signing key"));
+    }
+
+    [Test]
+    public void SignFile_TestWithWrongPassword()
+    {
+        Options.PrivateKeyPassword = "wrongpassword";
+
+        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        Assert.That(ex.Message, Does.Contain("Private key extraction failed"));
+    }
+
+    [Test]
+    public void SignFile_OutputFileExists()
+    {
+        _ = Pgp.SignFile(Input, Options, CancellationToken.None);
+
+        Input.OutputFileExistsAction = OutputFileExistsAction.Error;
+        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        Assert.That(ex.Message, Does.Contain("Output file already exists."));
     }
 }

@@ -19,13 +19,11 @@ public static class Pgp
     /// [Documentation](https://tasks.frends.com/tasks/frends-tasks/Frends-Pgp-SignFile)
     /// </summary>
     /// <param name="input">Essential parameters.</param>
-    /// <param name="connection">Connection parameters.</param>
     /// <param name="options">Optional parameters.</param>
     /// <param name="cancellationToken">A cancellation token provided by Frends Platform.</param>
     /// <returns>object { bool Success, string FilePath, object Error { string Message, Exception AdditionalInfo } }</returns>
     public static Result SignFile(
         [PropertyTab] Input input,
-        [PropertyTab] Connection connection,
         [PropertyTab] Options options,
         CancellationToken cancellationToken)
     {
@@ -41,11 +39,11 @@ public static class Pgp
 
             if (options.DetachedSignature)
             {
-                CreateDetachedSignature(inputFile, input.OutputFilePath, connection, options, cancellationToken);
+                CreateDetachedSignature(inputFile, input.OutputFilePath, options, cancellationToken);
             }
             else
             {
-                CreateAttachedSignature(inputFile, input.OutputFilePath, connection, options, cancellationToken);
+                CreateAttachedSignature(inputFile, input.OutputFilePath, options, cancellationToken);
             }
 
             return new Result(true, input.OutputFilePath);
@@ -59,7 +57,6 @@ public static class Pgp
     private static void CreateDetachedSignature(
         FileInfo inputFile,
         string outputPath,
-        Connection connection,
         Options options,
         CancellationToken cancellationToken)
     {
@@ -67,13 +64,13 @@ public static class Pgp
         using var armoredStream = options.UseArmor ? new ArmoredOutputStream(outputStream) : outputStream;
 
         var signatureGenerator = PgpServices.InitSignatureGenerator(
-            connection.PrivateKey,
-            connection.PrivateKeyPassword,
+            options.PrivateKey,
+            options.PrivateKeyPassword,
             options.SignatureHashAlgorithm,
-            connection.UseFileKey);
+            options.UseFileKey);
 
         using var inputStream = inputFile.OpenRead();
-        var buffer = new byte[16 * 1024];
+        var buffer = new byte[options.SignatureBufferSize * 1024];
         int bytesRead;
 
         while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
@@ -89,7 +86,6 @@ public static class Pgp
     private static void CreateAttachedSignature(
         FileInfo inputFile,
         string outputPath,
-        Connection connection,
         Options options,
         CancellationToken cancellationToken)
     {
@@ -98,10 +94,10 @@ public static class Pgp
 
         var signatureGenerator = PgpServices.InitSignatureGeneratorWithOnePass(
             armoredStream,
-            connection.PrivateKey,
-            connection.PrivateKeyPassword,
+            options.PrivateKey,
+            options.PrivateKeyPassword,
             options.SignatureHashAlgorithm,
-            connection.UseFileKey);
+            options.UseFileKey);
 
         var literalDataGenerator = new PgpLiteralDataGenerator();
         using var literalOut = literalDataGenerator.Open(
@@ -112,7 +108,7 @@ public static class Pgp
             DateTime.UtcNow);
 
         using var inputStream = inputFile.OpenRead();
-        var buffer = new byte[16 * 1024];
+        var buffer = new byte[options.SignatureBufferSize * 1024];
         int bytesRead;
 
         while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)

@@ -1,6 +1,6 @@
 using System;
 
-namespace Frends.Pgp.SignFile.Definitions;
+namespace Frends.Pgp.SignFile.Helpers;
 
 internal static class Extensions
 {
@@ -12,7 +12,13 @@ internal static class Extensions
     /// <returns>TEnum</returns>
     /// <exception cref="ArgumentException">Thrown when the source enum value cannot be converted to TEnum</exception>
     internal static TEnum ConvertEnum<TEnum>(this Enum source)
+        where TEnum : struct, Enum
     {
-        return (TEnum)Enum.Parse(typeof(TEnum), source.ToString(), true);
+        if (source is null) throw new ArgumentNullException(nameof(source));
+
+        if (!Enum.TryParse<TEnum>(source.ToString(), ignoreCase: true, out var result))
+            throw new ArgumentException($"Cannot convert '{source}' to {typeof(TEnum).Name}.", nameof(source));
+
+        return result;
     }
 }

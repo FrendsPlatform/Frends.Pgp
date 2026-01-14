@@ -6,3 +6,4 @@
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:ElementsMustBeDocumented", Justification = "Documentation checked by custom analyzers")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1633:FileMustHaveHeader", Justification = "Following Frends documentation guidelines")]
 [assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1101:Prefix local calls with this", Justification = "Following Frends documentation guidelines")]
+[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1309:Field names should not begin with underscore", Justification = "Following Frends documentation guidelines")]
