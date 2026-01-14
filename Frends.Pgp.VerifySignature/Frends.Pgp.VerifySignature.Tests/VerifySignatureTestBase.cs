@@ -43,7 +43,6 @@ namespace Frends.Pgp.VerifySignature.Tests
             Console.WriteLine($"PublicKey MD5: {keyHash}");
             Console.WriteLine("==================");
 
-
             if (!File.Exists(Path.Combine(WorkDir, SourceFile)))
                 throw new FileNotFoundException($"Test file not found: {SourceFile}");
 
@@ -76,7 +75,7 @@ namespace Frends.Pgp.VerifySignature.Tests
             using var md5 = System.Security.Cryptography.MD5.Create();
             using var stream = File.OpenRead(filePath);
             var hash = md5.ComputeHash(stream);
-            return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+            return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
         }
     }
 }
