@@ -14,7 +14,7 @@ internal static class Extensions
     internal static TEnum ConvertEnum<TEnum>(this Enum source)
         where TEnum : struct, Enum
     {
-        if (source is null) throw new ArgumentNullException(nameof(source));
+        ArgumentNullException.ThrowIfNull(source);
 
         if (!Enum.TryParse<TEnum>(source.ToString(), ignoreCase: true, out var result))
             throw new ArgumentException($"Cannot convert '{source}' to {typeof(TEnum).Name}.", nameof(source));
