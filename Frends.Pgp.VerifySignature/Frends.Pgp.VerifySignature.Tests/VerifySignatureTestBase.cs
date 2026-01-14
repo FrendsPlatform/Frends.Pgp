@@ -24,6 +24,26 @@ namespace Frends.Pgp.VerifySignature.Tests
         [SetUp]
         public void Setup()
         {
+            Console.WriteLine("=== DEBUG INFO ===");
+            Console.WriteLine($"WorkDir: {Path.GetFullPath(WorkDir)}");
+            Console.WriteLine($"SourceFile exists: {File.Exists(Path.Combine(WorkDir, SourceFile))}");
+            Console.WriteLine($"SourceFile size: {new FileInfo(Path.Combine(WorkDir, SourceFile)).Length} bytes");
+            Console.WriteLine($"DetachedSig exists: {File.Exists(Path.Combine(WorkDir, DetachedSignatureFile))}");
+            Console.WriteLine($"DetachedSig size: {new FileInfo(Path.Combine(WorkDir, DetachedSignatureFile)).Length} bytes");
+            Console.WriteLine($"PublicKey exists: {File.Exists(Path.Combine(WorkDir, PublicKeyFile))}");
+            Console.WriteLine($"PublicKey size: {new FileInfo(Path.Combine(WorkDir, PublicKeyFile)).Length} bytes");
+
+            // Check file content hashes
+            var sourceHash = GetFileHash(Path.Combine(WorkDir, SourceFile));
+            var sigHash = GetFileHash(Path.Combine(WorkDir, DetachedSignatureFile));
+            var keyHash = GetFileHash(Path.Combine(WorkDir, PublicKeyFile));
+
+            Console.WriteLine($"SourceFile MD5: {sourceHash}");
+            Console.WriteLine($"DetachedSig MD5: {sigHash}");
+            Console.WriteLine($"PublicKey MD5: {keyHash}");
+            Console.WriteLine("==================");
+
+
             if (!File.Exists(Path.Combine(WorkDir, SourceFile)))
                 throw new FileNotFoundException($"Test file not found: {SourceFile}");
 
@@ -49,6 +69,14 @@ namespace Frends.Pgp.VerifySignature.Tests
                 UseFileKey = true,
                 ThrowErrorOnFailure = true,
             };
+        }
+
+        private string GetFileHash(string filePath)
+        {
+            using var md5 = System.Security.Cryptography.MD5.Create();
+            using var stream = File.OpenRead(filePath);
+            var hash = md5.ComputeHash(stream);
+            return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
         }
     }
 }
