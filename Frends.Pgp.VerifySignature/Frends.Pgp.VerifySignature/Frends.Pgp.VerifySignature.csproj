@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Version>1.0.0</Version>
+        <Authors>Frends</Authors>
+        <Copyright>Copyright (c) 2026 Frends EiPaaS</Copyright>
+        <Company>Frends</Company>
+        <Product>Frends</Product>
+        <PackageTags>Frends</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Description>PGP Task for verifying signature.</Description>
+        <PackageProjectUrl>https://frends.com/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/FrendsPlatform/Frends.Pgp/tree/main/Frends.Pgp.VerifySignature</RepositoryUrl>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BouncyCastle.OpenPGP" Version="2.0.0.1" />
+        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="FrendsTaskAnalyzers" Version="1.*">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="migration.json" PackagePath="/" Pack="true" />
+        <Content Include="../CHANGELOG.md" PackagePath="/" Pack="true" />
+        <AdditionalFiles Include="FrendsTaskMetadata.json" PackagePath="/" Pack="true" />
+    </ItemGroup>
+</Project>
