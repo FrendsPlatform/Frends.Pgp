@@ -64,7 +64,7 @@ public class UnitTests
         input.PrivateKeyPath = Path.Combine(WorkDir, "invalid_key.asc");
         var result = Pgp.DecryptFile(input, options, CancellationToken.None);
         Assert.That(result.Success, Is.False);
-        Assert.That(result.Error.Message, Contains.Substring("Private key is incorrect or missing."));
+        Assert.That(result.Error.Message, Contains.Substring("Matching private key not found."));
     }
 
     [Test]
