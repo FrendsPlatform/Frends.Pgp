@@ -93,7 +93,7 @@ internal static class PgpServices
                 throw new Exception("Wrong private key - Can't find signing key in key ring.");
             }
         }
-        catch (Exception ex) when (!(ex is Exception && ex.Message.Contains("Can't find signing key")))
+        catch (Exception ex) when (ex.Message?.Contains("Can't find signing key") != true)
         {
             throw new Exception("Failed to read private key. Ensure the key is valid and properly formatted.", ex);
         }

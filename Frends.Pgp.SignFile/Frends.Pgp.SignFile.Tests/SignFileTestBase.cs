@@ -47,6 +47,12 @@ namespace Frends.Pgp.SignFile.Tests
         }
 
         [TearDown]
+        public void TearDown()
+        {
+            DeleteTmpFiles();
+        }
+
+
         public void DeleteTmpFiles()
         {
             if (File.Exists(Path.Combine(WorkDir, DetachedSignatureFile)))
