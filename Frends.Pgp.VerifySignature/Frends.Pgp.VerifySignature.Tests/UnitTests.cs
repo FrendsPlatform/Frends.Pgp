@@ -112,6 +112,7 @@ public class UnitTests : VerifySignatureTestBase
         Assert.That(ex.Message, Does.Contain("not found in keyring"));
     }
 
+    [Test]
     public void VerifySignature_TestWithCorruptedSignature()
     {
         string corruptedSigFile = Path.Combine(WorkDir, "corrupted.sig");

@@ -42,8 +42,10 @@ namespace Frends.Pgp.VerifySignature.Helpers
                     throw new Exception($"Public key with ID {keyId:X} not found in keyring.");
                 }
             }
-            catch (Exception ex) when (!(ex is Exception && ex.Message.Contains("not found")))
+            catch (Exception ex)
             {
+                if (ex.Message.Contains("not found in keyring"))
+                    throw;
                 throw new Exception("Failed to read public key. Ensure the key is valid and properly formatted.", ex);
             }
         }

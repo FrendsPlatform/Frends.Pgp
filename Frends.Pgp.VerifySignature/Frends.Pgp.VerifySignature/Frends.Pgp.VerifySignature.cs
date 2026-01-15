@@ -109,11 +109,9 @@ public static class Pgp
         using var fileStream = File.OpenRead(filePath);
         var buffer = new byte[options.SignatureBufferSize * 1024];
         int bytesRead;
-        int totalBytesRead = 0;
 
         while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
         {
-            totalBytesRead += bytesRead;
             cancellationToken.ThrowIfCancellationRequested();
             signature.Update(buffer, 0, bytesRead);
         }

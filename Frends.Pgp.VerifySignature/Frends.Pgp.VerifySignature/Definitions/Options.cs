@@ -31,7 +31,7 @@ public class Options
     public bool UseFileKey { get; set; } = true;
 
     /// <summary>
-    /// Buffer size in KB for reading the file during signature generation
+    /// Buffer size in KB for reading the file during signature verification
     /// </summary>
     /// <example>16</example>
     [DefaultValue(16)]
