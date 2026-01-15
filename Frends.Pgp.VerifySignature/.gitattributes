@@ -1,0 +1,5 @@
+**/TestData/*.txt text eol=lf
+**/TestData/*.asc binary
+**/TestData/*.sig binary
+**/TestData/*.pgp binary
+**/TestData/*.gpg binary
