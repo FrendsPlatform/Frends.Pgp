@@ -52,7 +52,7 @@ namespace Frends.Pgp.SignFile.Tests
             DeleteTmpFiles();
         }
 
-        public void DeleteTmpFiles()
+        private static void DeleteTmpFiles()
         {
             if (File.Exists(Path.Combine(WorkDir, DetachedSignatureFile)))
                 File.Delete(Path.Combine(WorkDir, DetachedSignatureFile));
