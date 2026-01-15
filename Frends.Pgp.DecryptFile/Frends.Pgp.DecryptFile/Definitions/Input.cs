@@ -33,11 +33,13 @@ public class Input
     /// Path to the private key file.
     /// </summary>
     /// <example>C:\keys\my_key.asc</example>
+    [DisplayFormat(DataFormatString = "Text")]
     public string PrivateKeyPath { get; set; }
 
     /// <summary>
     /// Passphrase for the private key.
     /// </summary>
     /// <example>P@ssw0rd</example>
+    [PasswordPropertyText]
     public string PrivateKeyPassphrase { get; set; }
 }
