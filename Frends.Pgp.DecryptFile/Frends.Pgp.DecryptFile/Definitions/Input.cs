@@ -1,0 +1,45 @@
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+
+namespace Frends.Pgp.DecryptFile.Definitions;
+
+/// <summary>
+/// Essential parameters.
+/// </summary>
+public class Input
+{
+    /// <summary>
+    /// Path to the file containing the data to be decrypted.
+    /// </summary>
+    /// <example>C:\secrets\message.gpg</example>
+    [DisplayFormat(DataFormatString = "Text")]
+    public string SourceFilePath { get; set; }
+
+    /// <summary>
+    /// Path where the decrypted file will be saved to.
+    /// </summary>
+    /// <example>C:\messages\result.txt</example>
+    [DisplayFormat(DataFormatString = "Text")]
+    public string OutputFilePath { get; set; }
+
+    /// <summary>
+    /// Buffer size in KB that will be used when decrypting the file.
+    /// </summary>
+    /// <example>64</example>
+    [DefaultValue(64)]
+    public int DecryptBufferSize { get; init; } = 64;
+
+    /// <summary>
+    /// Path to the private key file.
+    /// </summary>
+    /// <example>C:\keys\my_key.asc</example>
+    [DisplayFormat(DataFormatString = "Text")]
+    public string PrivateKeyPath { get; set; }
+
+    /// <summary>
+    /// Passphrase for the private key.
+    /// </summary>
+    /// <example>P@ssw0rd</example>
+    [PasswordPropertyText]
+    public string PrivateKeyPassphrase { get; set; }
+}
