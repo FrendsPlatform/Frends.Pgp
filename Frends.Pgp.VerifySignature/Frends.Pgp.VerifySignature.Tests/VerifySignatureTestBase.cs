@@ -14,12 +14,9 @@ namespace Frends.Pgp.VerifySignature.Tests
         protected static readonly string DetachedSignatureFile = "message.txt.sig";
         protected static readonly string AttachedSignatureFile = "message.txt.pgp";
 
-        private Options _options;
-        private Input _input;
+        protected Options Options { get; private set; }
 
-        protected Options Options => _options;
-
-        protected Input Input => _input;
+        protected Input Input { get; private set; }
 
         [SetUp]
         public void Setup()
@@ -36,27 +33,19 @@ namespace Frends.Pgp.VerifySignature.Tests
             if (!File.Exists(Path.Combine(WorkDir, AttachedSignatureFile)))
                 throw new FileNotFoundException($"Test file not found: {AttachedSignatureFile}.");
 
-            _input = new Input
+            Input = new Input
             {
                 FilePath = Path.Combine(WorkDir, SourceFile),
                 SignatureFilePath = Path.Combine(WorkDir, DetachedSignatureFile),
+                IsDetachedSignature = true,
             };
 
-            _options = new Options
+            Options = new Options
             {
-                IsDetachedSignature = true,
                 PublicKey = Path.Combine(WorkDir, PublicKeyFile),
                 UseFileKey = true,
                 ThrowErrorOnFailure = true,
             };
-        }
-
-        private string GetFileHash(string filePath)
-        {
-            using var md5 = System.Security.Cryptography.MD5.Create();
-            using var stream = File.OpenRead(filePath);
-            var hash = md5.ComputeHash(stream);
-            return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
         }
     }
 }

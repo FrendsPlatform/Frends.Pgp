@@ -25,7 +25,7 @@ public class UnitTests : VerifySignatureTestBase
     {
         Input.FilePath = Path.Combine(WorkDir, AttachedSignatureFile);
         Input.SignatureFilePath = null;
-        Options.IsDetachedSignature = false;
+        Input.IsDetachedSignature = false;
 
         var result = Pgp.VerifySignature(Input, Options, CancellationToken.None);
 
@@ -87,7 +87,7 @@ public class UnitTests : VerifySignatureTestBase
 
         Input.FilePath = Path.Combine(WorkDir, AttachedSignatureFile);
         Input.SignatureFilePath = null;
-        Options.IsDetachedSignature = false;
+        Input.IsDetachedSignature = false;
 
         var attachedResult = Pgp.VerifySignature(Input, Options, CancellationToken.None);
         Assert.That(attachedResult.IsValid, Is.True);
@@ -154,5 +154,19 @@ public class UnitTests : VerifySignatureTestBase
             if (File.Exists(invalidSigFile))
                 File.Delete(invalidSigFile);
         }
+    }
+
+    [Test]
+    public void VerifySignature_ShouldVerifyCompressedAttachedSignature()
+    {
+        Input.FilePath = Path.Combine(WorkDir, "message_compressed.txt.pgp");
+        Input.SignatureFilePath = null;
+        Input.IsDetachedSignature = false;
+
+        var result = Pgp.VerifySignature(Input, Options, CancellationToken.None);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.IsValid, Is.True);
+        Assert.That(result.SignerKeyId, Is.Not.Null);
     }
 }

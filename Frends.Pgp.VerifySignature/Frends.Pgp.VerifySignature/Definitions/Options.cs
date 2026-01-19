@@ -9,13 +9,6 @@ namespace Frends.Pgp.VerifySignature.Definitions;
 public class Options
 {
     /// <summary>
-    /// Whether the signature is detached (separate .sig file) or attached (signature embedded in signed file).
-    /// </summary>
-    /// <example>true</example>
-    [DefaultValue(true)]
-    public bool IsDetachedSignature { get; set; } = true;
-
-    /// <summary>
     /// Public key file path or ASCII-armored public key content.
     /// </summary>
     /// <example>C:\temp\publickey.asc</example>

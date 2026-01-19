@@ -31,7 +31,7 @@ public static class Pgp
             if (string.IsNullOrEmpty(input.FilePath) || !File.Exists(input.FilePath))
                 throw new ArgumentException("File to verify does not exist.");
 
-            if (options.IsDetachedSignature)
+            if (input.IsDetachedSignature)
             {
                 if (string.IsNullOrEmpty(input.SignatureFilePath))
                     throw new ArgumentException("Signature file path is required for detached signature verification.");
@@ -43,7 +43,7 @@ public static class Pgp
             bool isValid;
             PgpSignature signature;
 
-            if (options.IsDetachedSignature)
+            if (input.IsDetachedSignature)
             {
                 isValid = VerifyDetachedSignature(
                     input.FilePath,
@@ -144,6 +144,23 @@ public static class Pgp
             onePassSignature = onePassList[0];
             pgpObject = pgpFactory.NextPgpObject();
         }
+        else if (pgpObject is PgpCompressedData compressedDataFirst)
+        {
+            Stream compressedStream = compressedDataFirst.GetDataStream();
+            PgpObjectFactory compressedFactory = new PgpObjectFactory(compressedStream);
+            pgpObject = compressedFactory.NextPgpObject();
+
+            if (pgpObject is PgpOnePassSignatureList compressedOnePassList)
+            {
+                if (compressedOnePassList.Count == 0)
+                    throw new Exception("No one-pass signature found.");
+
+                onePassSignature = compressedOnePassList[0];
+                pgpObject = compressedFactory.NextPgpObject();
+            }
+
+            pgpFactory = compressedFactory;
+        }
 
         if (onePassSignature == null)
             throw new Exception("Invalid signed message format - missing one-pass signature.");
@@ -154,6 +171,13 @@ public static class Pgp
             onePassSignature.KeyId);
 
         onePassSignature.InitVerify(publicKey);
+
+        if (pgpObject is PgpCompressedData compressedData)
+        {
+            Stream compressedStream = compressedData.GetDataStream();
+            PgpObjectFactory compressedFactory = new PgpObjectFactory(compressedStream);
+            pgpObject = compressedFactory.NextPgpObject();
+        }
 
         if (pgpObject is PgpLiteralData literalData)
         {
