@@ -188,14 +188,6 @@ public static class Pgp
 
         onePassSignature.InitVerify(publicKey);
 
-        if (pgpObject is PgpCompressedData compressedData)
-        {
-            Stream compressedStream = compressedData.GetDataStream();
-            PgpObjectFactory compressedFactory = new PgpObjectFactory(compressedStream);
-            pgpObject = compressedFactory.NextPgpObject();
-            pgpFactory = compressedFactory;
-        }
-
         if (pgpObject is PgpLiteralData literalData)
         {
             using Stream literalStream = literalData.GetInputStream();
