@@ -81,6 +81,9 @@ public static class Pgp
     {
         signature = null;
 
+        if (options.SignatureBufferSize <= 0)
+            throw new ArgumentException("SignatureBufferSize must be greater than 0.");
+
         using Stream signatureStream = File.OpenRead(signatureFilePath);
         using Stream decoderStream = PgpUtilities.GetDecoderStream(signatureStream);
 
@@ -177,6 +180,7 @@ public static class Pgp
             Stream compressedStream = compressedData.GetDataStream();
             PgpObjectFactory compressedFactory = new PgpObjectFactory(compressedStream);
             pgpObject = compressedFactory.NextPgpObject();
+            pgpFactory = compressedFactory;
         }
 
         if (pgpObject is PgpLiteralData literalData)
