@@ -166,7 +166,7 @@ public static class Pgp
         }
 
         if (onePassSignature == null)
-            throw new Exception("Invalid signed message format - missing one-pass signature.");
+            throw new Exception("Invalid signed message format: missing one-pass signature.");
 
         PgpPublicKey publicKey = PgpVerificationServices.GetPublicKey(
             options.PublicKey,
