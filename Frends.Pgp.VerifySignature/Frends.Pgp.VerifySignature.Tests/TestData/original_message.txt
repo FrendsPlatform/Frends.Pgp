@@ -1,0 +1,1 @@
+"Secret" message that contains kanji (漢字) to test utf-8 compatibility.

@@ -7,6 +7,7 @@ Frends tasks for Pgp operations.
 - [Frends.Pgp.EncryptFile](Frends.Pgp.EncryptFile/README.md)
 - [Frends.Pgp.DecryptFile](Frends.Pgp.DecryptFile/README.md)
 - [Frends.Pgp.SignFile](Frends.Pgp.SignFile/README.md)
+- [Frends.Pgp.VerifySignature](Frends.Pgp.VerifySignature/README.md)
 
 # Contributing
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
