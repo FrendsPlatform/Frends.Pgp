@@ -40,6 +40,9 @@ public static class Pgp
                     throw new ArgumentException("Signature file does not exist.");
             }
 
+            if (options.SignatureBufferSize <= 0)
+                throw new ArgumentException("SignatureBufferSize must be greater than 0.");
+
             bool isValid;
             PgpSignature signature;
 
@@ -80,9 +83,6 @@ public static class Pgp
         out PgpSignature signature)
     {
         signature = null;
-
-        if (options.SignatureBufferSize <= 0)
-            throw new ArgumentException("SignatureBufferSize must be greater than 0.");
 
         using Stream signatureStream = File.OpenRead(signatureFilePath);
         using Stream decoderStream = PgpUtilities.GetDecoderStream(signatureStream);
