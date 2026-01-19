@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading;
 using Frends.Pgp.VerifySignature.Definitions;
 using Frends.Pgp.VerifySignature.Helpers;
@@ -13,6 +15,17 @@ namespace Frends.Pgp.VerifySignature;
 /// </summary>
 public static class Pgp
 {
+    static Pgp()
+    {
+        var currentAssembly = Assembly.GetExecutingAssembly();
+        var currentContext = AssemblyLoadContext.GetLoadContext(currentAssembly);
+
+        if (currentContext != null)
+        {
+            currentContext.Unloading += OnPluginUnloadingRequested;
+        }
+    }
+
     /// <summary>
     /// PGP Task for verifying signature.
     /// [Documentation](https://tasks.frends.com/tasks/frends-tasks/Frends-Pgp-VerifySignature)
@@ -215,5 +228,10 @@ public static class Pgp
         {
             throw new Exception("Invalid signed message format - missing literal data.");
         }
+    }
+
+    private static void OnPluginUnloadingRequested(AssemblyLoadContext obj)
+    {
+        obj.Unloading -= OnPluginUnloadingRequested;
     }
 }
