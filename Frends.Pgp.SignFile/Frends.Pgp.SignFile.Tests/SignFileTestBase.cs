@@ -14,6 +14,10 @@ namespace Frends.Pgp.SignFile.Tests
         private static readonly string SourceFile = "original_message.txt";
         private static readonly string DetachedSignatureFile = "message.txt.sig";
         private static readonly string AttachedSignatureFile = "message.txt.pgp";
+        private static readonly string AttachedSignatureFileCompressed = "message_compressed.txt.pgp";
+        private static readonly string LargeAttachedSignatureFileCompressed = "large_compressed.txt.pgp";
+        private static readonly string LargeAttachedSignatureFileUnCompressed = "large_uncompressed.txt.pgp";
+        private static readonly string LargeTestFile = "large_test.txt";
 
         private Options _options;
         private Input _input;
@@ -59,6 +63,18 @@ namespace Frends.Pgp.SignFile.Tests
 
             if (File.Exists(Path.Combine(WorkDir, AttachedSignatureFile)))
                 File.Delete(Path.Combine(WorkDir, AttachedSignatureFile));
+
+            if (File.Exists(Path.Combine(WorkDir, AttachedSignatureFileCompressed)))
+                File.Delete(Path.Combine(WorkDir, AttachedSignatureFileCompressed));
+
+            if (File.Exists(Path.Combine(WorkDir, LargeAttachedSignatureFileCompressed)))
+                File.Delete(Path.Combine(WorkDir, LargeAttachedSignatureFileCompressed));
+
+            if (File.Exists(Path.Combine(WorkDir, LargeAttachedSignatureFileUnCompressed)))
+                File.Delete(Path.Combine(WorkDir, LargeAttachedSignatureFileUnCompressed));
+
+            if (File.Exists(Path.Combine(WorkDir, LargeTestFile)))
+                File.Delete(Path.Combine(WorkDir, LargeTestFile));
         }
     }
 }
