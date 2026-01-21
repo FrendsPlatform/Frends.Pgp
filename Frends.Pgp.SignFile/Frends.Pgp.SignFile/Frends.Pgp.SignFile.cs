@@ -91,36 +91,54 @@ public static class Pgp
     {
         using Stream outputStream = File.Create(outputPath);
         using var armoredStream = options.UseArmor ? new ArmoredOutputStream(outputStream) : outputStream;
+        Stream targetStream = armoredStream;
+        PgpCompressedDataGenerator compressor = null;
 
-        var signatureGenerator = PgpServices.InitSignatureGeneratorWithOnePass(
-            armoredStream,
-            options.PrivateKey,
-            options.PrivateKeyPassword,
-            options.SignatureHashAlgorithm,
-            options.UseFileKey);
-
-        var literalDataGenerator = new PgpLiteralDataGenerator();
-        using var literalOut = literalDataGenerator.Open(
-            armoredStream,
-            PgpLiteralData.Binary,
-            inputFile.Name,
-            inputFile.Length,
-            DateTime.UtcNow);
-
-        using var inputStream = inputFile.OpenRead();
-        var buffer = new byte[options.SignatureBufferSize * 1024];
-        int bytesRead;
-
-        while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            literalOut.Write(buffer, 0, bytesRead);
-            signatureGenerator.Update(buffer, 0, bytesRead);
+            if (options.UseCompression)
+            {
+                compressor = new PgpCompressedDataGenerator(CompressionAlgorithmTag.Zip);
+                targetStream = compressor.Open(armoredStream);
+            }
+
+            var signatureGenerator = PgpServices.InitSignatureGeneratorWithOnePass(
+                targetStream,
+                options.PrivateKey,
+                options.PrivateKeyPassword,
+                options.SignatureHashAlgorithm,
+                options.UseFileKey);
+
+            var literalDataGenerator = new PgpLiteralDataGenerator();
+            using var literalOut = literalDataGenerator.Open(
+                targetStream,
+                PgpLiteralData.Binary,
+                inputFile.Name,
+                inputFile.Length,
+                DateTime.UtcNow);
+
+            using var inputStream = inputFile.OpenRead();
+            var buffer = new byte[options.SignatureBufferSize * 1024];
+            int bytesRead;
+
+            while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                literalOut.Write(buffer, 0, bytesRead);
+                signatureGenerator.Update(buffer, 0, bytesRead);
+            }
+
+            literalOut.Close();
+
+            PgpSignature signature = signatureGenerator.Generate();
+            signature.Encode(targetStream);
         }
-
-        literalOut.Close();
-
-        PgpSignature signature = signatureGenerator.Generate();
-        signature.Encode(armoredStream);
+        finally
+        {
+            if (compressor != null && targetStream != armoredStream)
+            {
+                targetStream.Close();
+            }
+        }
     }
 }

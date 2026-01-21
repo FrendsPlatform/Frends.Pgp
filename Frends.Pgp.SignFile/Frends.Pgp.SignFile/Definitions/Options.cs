@@ -54,6 +54,14 @@ public class Options
     public string PrivateKeyPassword { get; set; }
 
     /// <summary>
+    /// Whether to compress the signed data (only applies to attached signatures)
+    /// </summary>
+    /// <example>false</example>
+    [UIHint(nameof(DetachedSignature), "", false)]
+    [DefaultValue(false)]
+    public bool UseCompression { get; set; } = false;
+
+    /// <summary>
     /// Buffer size in KB for reading the file during signature generation
     /// </summary>
     /// <example>16</example>

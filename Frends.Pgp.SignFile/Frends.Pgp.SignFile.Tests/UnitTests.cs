@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using Frends.Pgp.SignFile.Definitions;
 using NUnit.Framework;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 
 namespace Frends.Pgp.SignFile.Tests;
 
@@ -118,13 +119,13 @@ public class UnitTests : SignFileTestBase
 
         Input.OutputFilePath = Path.Combine(WorkDir, "message.txt.pgp");
         Options.DetachedSignature = false;
+
         var attachedResult = Pgp.SignFile(Input, Options, CancellationToken.None);
+
         var attachedContent = File.ReadAllText(attachedResult.FilePath);
 
         Assert.That(detachedContent, Does.StartWith("-----BEGIN PGP SIGNATURE-----"));
-
         Assert.That(attachedContent, Does.StartWith("-----BEGIN PGP MESSAGE-----"));
-
         Assert.That(attachedContent.Length, Is.GreaterThan(detachedContent.Length));
     }
 
@@ -173,5 +174,49 @@ public class UnitTests : SignFileTestBase
         Input.OutputFileExistsAction = OutputFileExistsAction.Error;
         var ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
         Assert.That(ex.Message, Does.Contain("Output file already exists."));
+    }
+
+    [Test]
+    public void SignFile_ShouldCreateCompressedAttachedSignature()
+    {
+        Input.OutputFilePath = Path.Combine(WorkDir, "message_compressed.txt.pgp");
+        Options.DetachedSignature = false;
+        Options.UseCompression = true;
+
+        var result = Pgp.SignFile(Input, Options, CancellationToken.None);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(File.Exists(result.FilePath), Is.True);
+
+        var signedContent = File.ReadAllText(result.FilePath);
+        Assert.That(signedContent, Does.StartWith("-----BEGIN PGP MESSAGE-----"));
+        Assert.That(signedContent, Does.EndWith($"-----END PGP MESSAGE-----{Environment.NewLine}"));
+    }
+
+    [Test]
+    public void SignFile_CompressedAttachedSignatureShouldBeSmallerForLargeFiles()
+    {
+        string largeTestFile = Path.Combine(WorkDir, "large_test.txt");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 1000; i++)
+        {
+            sb.AppendLine("This is a test line that will be repeated many times for compression testing.");
+        }
+
+        File.WriteAllText(largeTestFile, sb.ToString());
+
+        Input.SourceFilePath = largeTestFile;
+        Input.OutputFilePath = Path.Combine(WorkDir, "large_uncompressed.txt.pgp");
+        Options.DetachedSignature = false;
+        Options.UseCompression = false;
+        var uncompressedResult = Pgp.SignFile(Input, Options, CancellationToken.None);
+        var uncompressedSize = new FileInfo(uncompressedResult.FilePath).Length;
+
+        Input.OutputFilePath = Path.Combine(WorkDir, "large_compressed.txt.pgp");
+        Options.UseCompression = true;
+        var compressedResult = Pgp.SignFile(Input, Options, CancellationToken.None);
+        var compressedSize = new FileInfo(compressedResult.FilePath).Length;
+
+        Assert.That(compressedSize, Is.LessThan(uncompressedSize));
     }
 }
