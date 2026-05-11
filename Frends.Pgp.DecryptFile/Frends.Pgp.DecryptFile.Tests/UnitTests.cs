@@ -69,7 +69,8 @@ public class UnitTests
         Assert.That(File.Exists(Path.Combine(WorkDir, DecryptedFile)), Is.True);
 
         var decryptedText = File.ReadAllText(Path.Combine(WorkDir, DecryptedFile));
-        Assert.That(NormalizeLineEndings(decryptedText),
+        Assert.That(
+            NormalizeLineEndings(decryptedText),
             Is.EqualTo(NormalizeLineEndings(File.ReadAllText(Path.Combine(WorkDir, OriginalMessageFile)))));
     }
 
