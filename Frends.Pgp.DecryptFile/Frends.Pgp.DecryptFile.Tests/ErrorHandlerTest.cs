@@ -13,8 +13,7 @@ public class ErrorHandlerTest
     [Test]
     public void Should_Throw_Error_When_ThrowErrorOnFailure_Is_True()
     {
-        var ex = Assert.Throws<Exception>(() =>
-            Pgp.DecryptFile(DefaultInput(), DefaultOptions(), CancellationToken.None));
+        var ex = Assert.Throws<Exception>(DecryptAction());
         Assert.That(ex, Is.Not.Null);
     }
 
@@ -32,11 +31,13 @@ public class ErrorHandlerTest
     {
         var options = DefaultOptions();
         options.ErrorMessageOnFailure = CustomErrorMessage;
-        var ex = Assert.Throws<Exception>(() =>
-            Pgp.DecryptFile(DefaultInput(), options, CancellationToken.None));
+        var ex = Assert.Throws<Exception>(DecryptAction(options));
         Assert.That(ex, Is.Not.Null);
         Assert.That(ex.Message, Contains.Substring(CustomErrorMessage));
     }
+
+    private static Action DecryptAction(Options options = null) =>
+        () => Pgp.DecryptFile(DefaultInput(), options ?? DefaultOptions(), CancellationToken.None);
 
     private static Input DefaultInput() => new()
     {
