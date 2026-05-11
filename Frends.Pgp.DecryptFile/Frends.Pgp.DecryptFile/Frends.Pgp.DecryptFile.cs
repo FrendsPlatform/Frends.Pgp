@@ -77,6 +77,10 @@ public static class Pgp
                 message = plainFactory.NextPgpObject();
             }
 
+            // Signed messages may include one-pass signature and signature list packets around the literal payload.
+            while (message is PgpOnePassSignatureList or PgpSignatureList)
+                message = plainFactory.NextPgpObject();
+
             if (message is not PgpLiteralData literalData)
                 throw new ArgumentException("Invalid PGP data.");
 

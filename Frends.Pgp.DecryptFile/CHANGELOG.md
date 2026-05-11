@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0] - 2026-05-11
+
+### Fixed
+
+- Support decryption of signed messages
+
 ## [1.1.0] - 2026-02-23
 
 ### Fixed

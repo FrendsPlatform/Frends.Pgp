@@ -12,7 +12,12 @@ public class UnitTests
     private const string OriginalMessageFile = "original_message.txt";
     private const string DecryptedFile = "decrypted.txt";
     private const string EncryptedFile = "encrypted.gpg";
-    private const string PrivateKey = "private_key.asc"; // this key should not be used on anything except testing as it is on the public GitHub repository.
+    private const string SignedEncryptedFile = "signed_encrypted.gpg";
+
+    private const string
+        PrivateKey =
+            "private_key.asc"; // this key should not be used on anything except testing as it is on the public GitHub repository.
+
     private const string Passphrase = "mat123";
 
     private static readonly string WorkDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../TestData/");
@@ -46,7 +51,27 @@ public class UnitTests
         Assert.That(File.Exists(Path.Combine(WorkDir, DecryptedFile)), Is.True);
 
         var decryptedText = File.ReadAllText(Path.Combine(WorkDir, DecryptedFile));
-        Assert.That(decryptedText, Is.EqualTo(File.ReadAllText(Path.Combine(WorkDir, OriginalMessageFile))));
+        Assert.That(
+            NormalizeLineEndings(decryptedText),
+            Is.EqualTo(NormalizeLineEndings(File.ReadAllText(Path.Combine(WorkDir, OriginalMessageFile)))));
+    }
+
+    [Test]
+    public void DecryptFile_Runs_Correctly_When_Message_Is_Signed()
+    {
+        var signedEncryptedPath = Path.Combine(WorkDir, SignedEncryptedFile);
+
+        input.SourceFilePath = signedEncryptedPath;
+
+        var result = Pgp.DecryptFile(input, options, CancellationToken.None);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(File.Exists(Path.Combine(WorkDir, DecryptedFile)), Is.True);
+
+        var decryptedText = File.ReadAllText(Path.Combine(WorkDir, DecryptedFile));
+        Assert.That(
+            NormalizeLineEndings(decryptedText),
+            Is.EqualTo(NormalizeLineEndings(File.ReadAllText(Path.Combine(WorkDir, OriginalMessageFile)))));
     }
 
     [Test]
@@ -93,4 +118,6 @@ public class UnitTests
         Assert.That(result.Success, Is.False);
         Assert.That(result.Error.Message, Contains.Substring("Output file already exists."));
     }
+
+    private static string NormalizeLineEndings(string value) => value.Replace("\r\n", "\n").Replace("\r", "\n");
 }
