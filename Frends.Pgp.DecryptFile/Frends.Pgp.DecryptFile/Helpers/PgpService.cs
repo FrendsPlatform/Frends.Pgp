@@ -35,17 +35,18 @@ internal static class PgpService
         {
             return secretKey.ExtractPrivateKey(passphrase.ToCharArray());
         }
-        catch (PgpException ex) when (ex.Message.Contains("Checksum mismatch", StringComparison.Ordinal))
+        catch (PgpException ex)
         {
-            var trimmedPassphrase = passphrase.Trim();
-
-            if (!string.Equals(passphrase, trimmedPassphrase, StringComparison.Ordinal))
+            if (passphrase.Length > 0 &&
+                (char.IsWhiteSpace(passphrase[0]) || char.IsWhiteSpace(passphrase[^1])))
             {
+                var trimmedPassphrase = passphrase.Trim();
+
                 try
                 {
                     return secretKey.ExtractPrivateKey(trimmedPassphrase.ToCharArray());
                 }
-                catch (PgpException trimmedEx) when (trimmedEx.Message.Contains("Checksum mismatch", StringComparison.Ordinal))
+                catch (PgpException trimmedEx)
                 {
                     throw new ArgumentException("Failed to unlock private key. Check passphrase value and key compatibility.", trimmedEx);
                 }
