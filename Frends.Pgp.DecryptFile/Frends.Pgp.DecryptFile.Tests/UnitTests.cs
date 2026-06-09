@@ -80,7 +80,17 @@ public class UnitTests
         input.PrivateKeyPassphrase = "invalid passphrase";
         var result = Pgp.DecryptFile(input, options, CancellationToken.None);
         Assert.That(result.Success, Is.False);
-        Assert.That(result.Error.Message, Contains.Substring("Private key passphrase is invalid."));
+        Assert.That(result.Error.Message, Contains.Substring("Failed to unlock private key."));
+    }
+
+    [Test]
+    public void DecryptFile_Runs_Correctly_When_Passphrase_Has_Trailing_Newline()
+    {
+        input.PrivateKeyPassphrase = Passphrase + Environment.NewLine;
+        var result = Pgp.DecryptFile(input, options, CancellationToken.None);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(File.Exists(Path.Combine(WorkDir, DecryptedFile)), Is.True);
     }
 
     [Test]

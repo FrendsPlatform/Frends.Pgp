@@ -24,6 +24,34 @@ internal static class PgpService
         var secretKeyRingBundle = new PgpSecretKeyRingBundle(decoderStream);
         var secretKey = secretKeyRingBundle.GetSecretKey(keyId);
 
-        return secretKey?.ExtractPrivateKey(input.PrivateKeyPassphrase.ToCharArray());
+        return secretKey == null
+            ? null
+            : ExtractPrivateKey(secretKey, input.PrivateKeyPassphrase);
+    }
+
+    private static PgpPrivateKey ExtractPrivateKey(PgpSecretKey secretKey, string passphrase)
+    {
+        try
+        {
+            return secretKey.ExtractPrivateKey(passphrase.ToCharArray());
+        }
+        catch (PgpException ex) when (ex.Message.Contains("Checksum mismatch", StringComparison.Ordinal))
+        {
+            var trimmedPassphrase = passphrase.Trim();
+
+            if (!string.Equals(passphrase, trimmedPassphrase, StringComparison.Ordinal))
+            {
+                try
+                {
+                    return secretKey.ExtractPrivateKey(trimmedPassphrase.ToCharArray());
+                }
+                catch (PgpException trimmedEx) when (trimmedEx.Message.Contains("Checksum mismatch", StringComparison.Ordinal))
+                {
+                    throw new ArgumentException("Failed to unlock private key. Check passphrase value and key compatibility.", trimmedEx);
+                }
+            }
+
+            throw new ArgumentException("Failed to unlock private key. Check passphrase value and key compatibility.", ex);
+        }
     }
 }

@@ -107,11 +107,7 @@ public static class Pgp
         catch (Exception ex)
         {
             if (File.Exists(tempFilePath)) File.Delete(tempFilePath);
-            var exception = ex;
-            if (ex.Message.Contains("Checksum mismatch"))
-                exception = new Exception("Private key passphrase is invalid.", ex);
-
-            return ErrorHandler.Handle(exception, options.ThrowErrorOnFailure, options.ErrorMessageOnFailure);
+            return ErrorHandler.Handle(ex, options.ThrowErrorOnFailure, options.ErrorMessageOnFailure);
         }
     }
 }
