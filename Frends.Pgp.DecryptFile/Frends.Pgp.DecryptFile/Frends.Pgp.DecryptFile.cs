@@ -27,10 +27,6 @@ public static class Pgp
         [PropertyTab] Options options,
         CancellationToken cancellationToken)
     {
-        var outputDir = Path.GetDirectoryName(input.OutputFilePath);
-        if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
-            Directory.CreateDirectory(outputDir);
-
         var tempFilePath = input.OutputFilePath + Guid.NewGuid() + ".tmp";
 
         try
@@ -40,6 +36,10 @@ public static class Pgp
 
             if (File.Exists(input.OutputFilePath))
                 throw new ArgumentException("Output file already exists.");
+
+            var outputDir = Path.GetDirectoryName(input.OutputFilePath);
+            if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
+                Directory.CreateDirectory(outputDir);
 
             using var inputStream = File.OpenRead(input.SourceFilePath);
             using var decoderStream = PgpUtilities.GetDecoderStream(inputStream);
