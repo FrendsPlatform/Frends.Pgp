@@ -142,7 +142,7 @@ public class UnitTests
 
         var result = Pgp.DecryptFile(utf8Input, options, CancellationToken.None);
 
-        Assert.That(result.Success, Is.True);
+        Assert.That(result.Success, Is.True, $"Decryption failed: {result.Error?.Message}");
         Assert.That(File.Exists(utf8Input.OutputFilePath), Is.True);
         var decryptedText = File.ReadAllText(utf8Input.OutputFilePath);
         Assert.That(
