@@ -1,8 +1,9 @@
-using System;
-using System.IO;
-using System.Threading;
 using Frends.Pgp.DecryptFile.Definitions;
 using NUnit.Framework;
+using System;
+using System.IO;
+using System.Text;
+using System.Threading;
 
 namespace Frends.Pgp.DecryptFile.Tests;
 
@@ -13,6 +14,12 @@ public class UnitTests
     private const string DecryptedFile = "decrypted.txt";
     private const string EncryptedFile = "encrypted.gpg";
     private const string SignedEncryptedFile = "signed_encrypted.gpg";
+
+    private const string OriginalMessageUtf8File = "original_message_utf8.txt";
+    private const string DecryptedUtf8File = "decrypted_utf8.txt";
+    private const string EncryptedUtf8File = "encrypted_utf8.gpg";
+    private const string PrivateKeyUtf8 = "private_key_utf8.asc"; // testing only, public GitHub repo
+    private const string PassphraseUtf8 = "test123ä";
 
     private const string
         PrivateKey =
@@ -28,6 +35,7 @@ public class UnitTests
     public void Setup()
     {
         if (File.Exists(Path.Combine(WorkDir, DecryptedFile))) File.Delete(Path.Combine(WorkDir, DecryptedFile));
+        if (File.Exists(Path.Combine(WorkDir, DecryptedUtf8File))) File.Delete(Path.Combine(WorkDir, DecryptedUtf8File));
         input = new Input
         {
             SourceFilePath = Path.Combine(WorkDir, EncryptedFile),
@@ -117,6 +125,37 @@ public class UnitTests
         var result = Pgp.DecryptFile(input, options, CancellationToken.None);
         Assert.That(result.Success, Is.False);
         Assert.That(result.Error.Message, Contains.Substring("Output file already exists."));
+    }
+
+    [Test]
+    public void DecryptFile_With_NonAscii_Passphrase_Runs_Correctly()
+    {
+        var utf8Input = new Input
+        {
+            SourceFilePath = Path.Combine(WorkDir, EncryptedUtf8File),
+            OutputFilePath = Path.Combine(WorkDir, DecryptedUtf8File),
+            PrivateKeyPath = Path.Combine(WorkDir, PrivateKeyUtf8),
+            PrivateKeyPassphrase = PassphraseUtf8,
+            DecryptBufferSize = 64,
+        };
+
+        if (File.Exists(utf8Input.OutputFilePath)) File.Delete(utf8Input.OutputFilePath);
+
+        var result = Pgp.DecryptFile(utf8Input, options, CancellationToken.None);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(File.Exists(utf8Input.OutputFilePath), Is.True);
+        var decryptedText = File.ReadAllText(utf8Input.OutputFilePath);
+        Assert.That(
+            NormalizeLineEndings(decryptedText),
+            Is.EqualTo(NormalizeLineEndings(File.ReadAllText(Path.Combine(WorkDir, OriginalMessageUtf8File)))));
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        if (File.Exists(Path.Combine(WorkDir, DecryptedFile))) File.Delete(Path.Combine(WorkDir, DecryptedFile));
+        if (File.Exists(Path.Combine(WorkDir, DecryptedUtf8File))) File.Delete(Path.Combine(WorkDir, DecryptedUtf8File));
     }
 
     private static string NormalizeLineEndings(string value) => value.Replace("\r\n", "\n").Replace("\r", "\n");

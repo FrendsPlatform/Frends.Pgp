@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0] - 2026-06-23
+
+### Fixed
+
+- Decryption failing with non-ASCII passphrases
+- Output directory not created automatically
+
 ## [1.2.0] - 2026-05-11
 
 ### Fixed

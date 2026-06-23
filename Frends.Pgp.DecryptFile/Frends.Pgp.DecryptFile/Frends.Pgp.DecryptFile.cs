@@ -27,6 +27,10 @@ public static class Pgp
         [PropertyTab] Options options,
         CancellationToken cancellationToken)
     {
+        var outputDir = Path.GetDirectoryName(input.OutputFilePath);
+        if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
+            Directory.CreateDirectory(outputDir);
+
         var tempFilePath = input.OutputFilePath + Guid.NewGuid() + ".tmp";
 
         try

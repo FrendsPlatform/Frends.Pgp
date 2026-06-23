@@ -24,6 +24,6 @@ internal static class PgpService
         var secretKeyRingBundle = new PgpSecretKeyRingBundle(decoderStream);
         var secretKey = secretKeyRingBundle.GetSecretKey(keyId);
 
-        return secretKey?.ExtractPrivateKey(input.PrivateKeyPassphrase.ToCharArray());
+        return secretKey?.ExtractPrivateKeyUtf8(input.PrivateKeyPassphrase.ToCharArray());
     }
 }
