@@ -19,7 +19,7 @@ public class UnitTests
     private const string DecryptedUtf8File = "decrypted_utf8.txt";
     private const string EncryptedUtf8File = "encrypted_utf8.gpg";
     private const string PrivateKeyUtf8 = "private_key_utf8.asc"; // testing only, public GitHub repo
-    private const string PassphraseUtf8 = "test123ä";
+    private const string PassphraseUtf8 = "test123\u00e4";
 
     private const string
         PrivateKey =
