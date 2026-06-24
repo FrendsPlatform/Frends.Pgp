@@ -151,6 +151,57 @@ public class UnitTests
             Is.EqualTo(NormalizeLineEndings(File.ReadAllText(Path.Combine(WorkDir, OriginalMessageUtf8File)))));
     }
 
+    [Test]
+    public void DecryptFile_Creates_Missing_Output_Directory()
+    {
+        var nestedDir = Path.Combine(WorkDir, "nested_" + Guid.NewGuid());
+        var nestedOutputPath = Path.Combine(nestedDir, "sub", DecryptedFile);
+
+        var nestedInput = new Input
+        {
+            SourceFilePath = Path.Combine(WorkDir, EncryptedFile),
+            OutputFilePath = nestedOutputPath,
+            PrivateKeyPath = Path.Combine(WorkDir, PrivateKey),
+            PrivateKeyPassphrase = Passphrase,
+            DecryptBufferSize = 64,
+        };
+
+        var result = Pgp.DecryptFile(nestedInput, options, CancellationToken.None);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(File.Exists(nestedOutputPath), Is.True);
+
+        Directory.Delete(nestedDir, recursive: true);
+    }
+
+    [Test]
+    public void DecryptFile_Runs_Correctly_With_Legacy_Encoding_And_Ascii_Passphrase()
+    {
+        input.PassphraseEncoding = PassphraseEncoding.Legacy;
+
+        var result = Pgp.DecryptFile(input, options, CancellationToken.None);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(File.Exists(Path.Combine(WorkDir, DecryptedFile)), Is.True);
+    }
+
+    [Test]
+    public void DecryptFile_Runs_Correctly_With_PrivateKeyString()
+    {
+        input.PrivateKeySource = PrivateKeySource.String;
+        input.PrivateKeyString = File.ReadAllText(Path.Combine(WorkDir, PrivateKey));
+
+        var result = Pgp.DecryptFile(input, options, CancellationToken.None);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(File.Exists(Path.Combine(WorkDir, DecryptedFile)), Is.True);
+
+        var decryptedText = File.ReadAllText(Path.Combine(WorkDir, DecryptedFile));
+        Assert.That(
+            NormalizeLineEndings(decryptedText),
+            Is.EqualTo(NormalizeLineEndings(File.ReadAllText(Path.Combine(WorkDir, OriginalMessageFile)))));
+    }
+
     [TearDown]
     public void TearDown()
     {
