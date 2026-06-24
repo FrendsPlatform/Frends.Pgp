@@ -130,11 +130,6 @@ public class UnitTests
     [Test]
     public void DecryptFile_With_NonAscii_Passphrase_Runs_Correctly()
     {
-        Console.WriteLine($"Passphrase length: {PassphraseUtf8.Length}");
-        foreach (char c in PassphraseUtf8)
-            Console.WriteLine($"char: '{c}' = U+{(int)c:X4}");
-        Console.WriteLine($"UTF8 bytes: {BitConverter.ToString(Encoding.UTF8.GetBytes(PassphraseUtf8))}");
-
         var utf8Input = new Input
         {
             SourceFilePath = Path.Combine(WorkDir, EncryptedUtf8File),
