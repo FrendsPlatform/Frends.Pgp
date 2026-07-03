@@ -106,8 +106,6 @@ public static class Pgp
             if (encryptedData.IsIntegrityProtected() && !encryptedData.Verify())
                 throw new CryptographicException("PGP integrity check failed.");
 
-            compressedStream?.Dispose();
-
             File.Move(tempFilePath, input.OutputFilePath);
 
             return new Result { Success = true };
@@ -120,6 +118,10 @@ public static class Pgp
                 exception = new Exception("Private key passphrase is invalid.", ex);
 
             return ErrorHandler.Handle(exception, options.ThrowErrorOnFailure, options.ErrorMessageOnFailure);
+        }
+        finally
+        {
+            compressedStream?.Dispose();
         }
     }
 }
