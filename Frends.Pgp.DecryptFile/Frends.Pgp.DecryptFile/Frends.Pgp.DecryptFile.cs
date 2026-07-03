@@ -28,6 +28,7 @@ public static class Pgp
         CancellationToken cancellationToken)
     {
         var tempFilePath = input.OutputFilePath + Guid.NewGuid() + ".tmp";
+        Stream compressedStream = null;
 
         try
         {
@@ -76,7 +77,7 @@ public static class Pgp
             // handle compression
             if (message is PgpCompressedData compressedData)
             {
-                using var compressedStream = compressedData.GetDataStream();
+                compressedStream = compressedData.GetDataStream();
                 plainFactory = new PgpObjectFactory(compressedStream);
                 message = plainFactory.NextPgpObject();
             }
@@ -104,6 +105,9 @@ public static class Pgp
 
             if (encryptedData.IsIntegrityProtected() && !encryptedData.Verify())
                 throw new CryptographicException("PGP integrity check failed.");
+
+            compressedStream?.Dispose();
+
             File.Move(tempFilePath, input.OutputFilePath);
 
             return new Result { Success = true };
