@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 using System.Threading;
 using Frends.Pgp.DecryptFile.Definitions;
 using NUnit.Framework;
@@ -20,6 +19,9 @@ public class UnitTests
     private const string EncryptedUtf8File = "encrypted_utf8.gpg";
     private const string PrivateKeyUtf8 = "private_key_utf8.asc"; // testing only, public GitHub repo
     private const string PassphraseUtf8 = "test123\u00e4";
+
+    private const string EncryptedCompressedFile = "encrypted_compressed.gpg";
+    private const string DecryptedCompressedFile = "decrypted_compressed.txt";
 
     private const string
         PrivateKey =
@@ -200,6 +202,26 @@ public class UnitTests
         Assert.That(
             NormalizeLineEndings(decryptedText),
             Is.EqualTo(NormalizeLineEndings(File.ReadAllText(Path.Combine(WorkDir, OriginalMessageFile)))));
+    }
+
+    [Test]
+    public void DecryptFile_LargeCompressedData_Runs_Correctly()
+    {
+        var compressedInput = new Input
+        {
+            SourceFilePath = Path.Combine(WorkDir, EncryptedCompressedFile),
+            OutputFilePath = Path.Combine(WorkDir, DecryptedCompressedFile),
+            PrivateKeyPath = input.PrivateKeyPath,
+            PrivateKeyPassphrase = input.PrivateKeyPassphrase,
+            DecryptBufferSize = input.DecryptBufferSize,
+        };
+
+        if (File.Exists(compressedInput.OutputFilePath))
+            File.Delete(compressedInput.OutputFilePath);
+
+        var result = Pgp.DecryptFile(compressedInput, options, CancellationToken.None);
+
+        Assert.That(result.Success, Is.True);
     }
 
     [TearDown]

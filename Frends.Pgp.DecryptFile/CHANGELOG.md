@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0] - 2026-07-03
+
+### Fixed
+
+- Premature stream disposal for compressed data
+
 ## [1.3.0] - 2026-06-23
 
 ### Fixed
