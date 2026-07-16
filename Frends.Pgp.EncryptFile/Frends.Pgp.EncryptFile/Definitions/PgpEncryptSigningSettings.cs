@@ -52,6 +52,7 @@ public class PgpEncryptSigningSettings
     /// <summary>
     /// Legacy alias for PrivateKeyPath.
     /// </summary>
+    /// <example>C:\temp\privateKeyFile.gpg</example>
     [Browsable(false)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public string PrivateKeyFile
@@ -63,6 +64,7 @@ public class PgpEncryptSigningSettings
     /// <summary>
     /// Legacy alias for PrivateKeyPassphrase.
     /// </summary>
+    /// <example>passphrase</example>
     [Browsable(false)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public string PrivateKeyPassword

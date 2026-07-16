@@ -79,7 +79,7 @@ public class ErrorHandlerTest : EncryptFileTestBase
         input.PublicKeyFile = Path.Combine(GetWorkDir(), "nonexisting.asc");
 
         ex = Assert.Throws<Exception>(() => Pgp.EncryptFile(input, options, default));
-        Assert.That(ex.Message, Does.Contain($"Could not find file"));
+        Assert.That(ex.Message, Does.Contain("Public key file not found."));
     }
 
     [Test]

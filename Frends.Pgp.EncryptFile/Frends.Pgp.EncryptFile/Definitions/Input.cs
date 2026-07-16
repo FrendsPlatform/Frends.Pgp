@@ -57,6 +57,7 @@ public class Input
     /// <summary>
     /// Legacy alias for PublicKeyPath.
     /// </summary>
+    /// <example>C:\temp\publicKey.asc</example>
     [Browsable(false)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public string PublicKeyFile
