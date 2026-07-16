@@ -20,7 +20,7 @@ internal static class PgpServices
     internal static Stream GetEncryptionStream(Stream stream, Input input, Options options)
     {
         SymmetricKeyAlgorithmTag algorithmTag = input.EncryptionAlgorithm.ConvertEnum<SymmetricKeyAlgorithmTag>();
-        PgpPublicKey publicKey = ReadPublicKey(input.PublicKeyFile, input.PublicKeyId);
+        PgpPublicKey publicKey = ReadPublicKey(input);
         PgpEncryptedDataGenerator encryptedDataGenerator = new PgpEncryptedDataGenerator(algorithmTag, options.UseIntegrityCheck, new SecureRandom());
         encryptedDataGenerator.AddMethod(publicKey);
         return encryptedDataGenerator.Open(stream, new byte[options.EncryptBufferSize * 1024]);
@@ -56,12 +56,14 @@ internal static class PgpServices
 
         try
         {
-            PgpSecretKey secretKey = ReadSecretKey(options.SigningSettings.PrivateKeyFile);
+            PgpSecretKey secretKey = ReadSecretKey(options.SigningSettings);
 
-            if (string.IsNullOrEmpty(options.SigningSettings.PrivateKeyPassword))
-                throw new ArgumentException("Private key password is required for signing.");
+            if (options.SigningSettings.PrivateKeyPassphrase == null)
+                throw new ArgumentException("Private key passphrase is not configured.");
 
-            PgpPrivateKey privateKey = secretKey.ExtractPrivateKey(options.SigningSettings.PrivateKeyPassword.ToCharArray());
+            PgpPrivateKey privateKey = options.SigningSettings.PassphraseEncoding == PassphraseEncoding.Utf8
+                ? secretKey.ExtractPrivateKeyUtf8(options.SigningSettings.PrivateKeyPassphrase.ToCharArray())
+                : secretKey.ExtractPrivateKey(options.SigningSettings.PrivateKeyPassphrase.ToCharArray());
 
             var pgpSignatureGenerator = new PgpSignatureGenerator(secretKey.PublicKey.Algorithm, hashAlgorithm);
             pgpSignatureGenerator.InitSign(PgpSignature.BinaryDocument, privateKey);
@@ -85,9 +87,9 @@ internal static class PgpServices
         }
     }
 
-    private static PgpSecretKey ReadSecretKey(string privateKeyFile)
+    private static PgpSecretKey ReadSecretKey(PgpEncryptSigningSettings signingSettings)
     {
-        using Stream secretKeyStream = File.OpenRead(privateKeyFile);
+        using Stream secretKeyStream = GetPrivateKeyStream(signingSettings);
         var secretKeyRingBundle = new PgpSecretKeyRingBundle(PgpUtilities.GetDecoderStream(secretKeyStream));
 
         foreach (PgpSecretKeyRing keyRing in secretKeyRingBundle.GetKeyRings())
@@ -102,12 +104,13 @@ internal static class PgpServices
         throw new Exception("Wrong private key - Can't find signing key in key ring.");
     }
 
-    private static PgpPublicKey ReadPublicKey(string publicKeyFile, string keyId)
+    private static PgpPublicKey ReadPublicKey(Input input)
     {
-        using Stream publicKeyStream = File.OpenRead(publicKeyFile);
+        using Stream publicKeyStream = GetPublicKeyStream(input);
         using Stream decoderStream = PgpUtilities.GetDecoderStream(publicKeyStream);
         var pgpPub = new PgpPublicKeyRingBundle(decoderStream);
         PgpPublicKey key = null;
+        var keyId = input.PublicKeyId;
 
         if (!string.IsNullOrEmpty(keyId))
         {
@@ -135,6 +138,44 @@ internal static class PgpServices
         }
 
         throw new ArgumentException("Can't find valid encryption key in key ring.");
+    }
+
+    private static Stream GetPrivateKeyStream(PgpEncryptSigningSettings signingSettings)
+    {
+        if (signingSettings.PrivateKeySource == PrivateKeySource.String)
+        {
+            if (string.IsNullOrEmpty(signingSettings.PrivateKeyString))
+                throw new ArgumentException("Private key string was not given.");
+
+            return new MemoryStream(Encoding.UTF8.GetBytes(signingSettings.PrivateKeyString));
+        }
+
+        if (string.IsNullOrEmpty(signingSettings.PrivateKeyPath))
+            throw new ArgumentException("Private key path is not configured.");
+
+        if (!File.Exists(signingSettings.PrivateKeyPath))
+            throw new FileNotFoundException("Private key file not found.", signingSettings.PrivateKeyPath);
+
+        return File.OpenRead(signingSettings.PrivateKeyPath);
+    }
+
+    private static Stream GetPublicKeyStream(Input input)
+    {
+        if (input.PublicKeySource == PublicKeySource.String)
+        {
+            if (string.IsNullOrEmpty(input.PublicKeyString))
+                throw new ArgumentException("Public key string was not given.");
+
+            return new MemoryStream(Encoding.UTF8.GetBytes(input.PublicKeyString));
+        }
+
+        if (string.IsNullOrEmpty(input.PublicKeyPath))
+            throw new ArgumentException("Public key path is not configured.");
+
+        if (!File.Exists(input.PublicKeyPath))
+            throw new FileNotFoundException("Public key file not found.", input.PublicKeyPath);
+
+        return File.OpenRead(input.PublicKeyPath);
     }
 
     private static void ValidateUsableEncryptionKey(PgpPublicKey key)

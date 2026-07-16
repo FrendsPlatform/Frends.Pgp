@@ -9,18 +9,67 @@ namespace Frends.Pgp.EncryptFile.Definitions;
 public class PgpEncryptSigningSettings
 {
     /// <summary>
-    /// Path to private key to sign with
+    /// Source of the private key - file path or string.
     /// </summary>
-    /// <example>C:\temp\privateKeyFile.gpg</example>
-    [DisplayFormat(DataFormatString = "Text")]
-    public string PrivateKeyFile { get; set; }
+    /// <example>PrivateKeySource.File</example>
+    public PrivateKeySource PrivateKeySource { get; set; } = PrivateKeySource.File;
 
     /// <summary>
-    /// If the file should be signed with private key then password to private key has to be offered
+    /// Path to the private key file.
+    /// </summary>
+    /// <example>C:\temp\privateKeyFile.gpg</example>
+    [UIHint(nameof(PrivateKeySource), "", PrivateKeySource.File)]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string PrivateKeyPath { get; set; }
+
+    /// <summary>
+    /// Private key as a string, including the BEGIN/END PGP PRIVATE KEY BLOCK lines.
+    /// </summary>
+    /// <example>
+    /// -----BEGIN PGP PRIVATE KEY BLOCK-----
+    /// ...
+    /// -----END PGP PRIVATE KEY BLOCK-----
+    /// </example>
+    [UIHint(nameof(PrivateKeySource), "", PrivateKeySource.String)]
+    [DisplayFormat(DataFormatString = "Text")]
+    [PasswordPropertyText]
+    public string PrivateKeyString { get; set; }
+
+    /// <summary>
+    /// Encoding used for the private key passphrase. Defaults to Utf8.
+    /// Use Legacy if the passphrase contains non-ASCII characters and the key was created with an older PGP tool.
+    /// </summary>
+    /// <example>PassphraseEncoding.Utf8</example>
+    public PassphraseEncoding PassphraseEncoding { get; set; } = PassphraseEncoding.Utf8;
+
+    /// <summary>
+    /// Passphrase for the private key.
     /// </summary>
     /// <example>passphrase</example>
     [PasswordPropertyText]
-    public string PrivateKeyPassword { get; set; }
+    public string PrivateKeyPassphrase { get; set; }
+
+    /// <summary>
+    /// Legacy alias for PrivateKeyPath.
+    /// </summary>
+    [Browsable(false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public string PrivateKeyFile
+    {
+        get => PrivateKeyPath;
+        set => PrivateKeyPath = value;
+    }
+
+    /// <summary>
+    /// Legacy alias for PrivateKeyPassphrase.
+    /// </summary>
+    [Browsable(false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public string PrivateKeyPassword
+    {
+        get => PrivateKeyPassphrase;
+        set => PrivateKeyPassphrase = value;
+    }
 
     /// <summary>
     /// Hash algorithm to use with signature

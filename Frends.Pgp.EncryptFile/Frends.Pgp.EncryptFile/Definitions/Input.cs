@@ -29,11 +29,41 @@ public class Input
     public OutputFileExistsAction OutputFileExistsAction { get; set; } = OutputFileExistsAction.Overwrite;
 
     /// <summary>
-    /// Full path for the public key.
+    /// Source of the public key - file path or string.
+    /// </summary>
+    /// <example>PublicKeySource.File</example>
+    public PublicKeySource PublicKeySource { get; set; } = PublicKeySource.File;
+
+    /// <summary>
+    /// Path to the public key file.
     /// </summary>
     /// <example>C:\temp\publicKey.asc</example>
+    [UIHint(nameof(PublicKeySource), "", PublicKeySource.File)]
     [DisplayFormat(DataFormatString = "Text")]
-    public string PublicKeyFile { get; set; }
+    public string PublicKeyPath { get; set; }
+
+    /// <summary>
+    /// Public key as a string, including the BEGIN/END PGP PUBLIC KEY BLOCK lines.
+    /// </summary>
+    /// <example>
+    /// -----BEGIN PGP PUBLIC KEY BLOCK-----
+    /// ...
+    /// -----END PGP PUBLIC KEY BLOCK-----
+    /// </example>
+    [UIHint(nameof(PublicKeySource), "", PublicKeySource.String)]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string PublicKeyString { get; set; }
+
+    /// <summary>
+    /// Legacy alias for PublicKeyPath.
+    /// </summary>
+    [Browsable(false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public string PublicKeyFile
+    {
+        get => PublicKeyPath;
+        set => PublicKeyPath = value;
+    }
 
     /// <summary>
     /// ID of the correct key in the key ring (Optional).

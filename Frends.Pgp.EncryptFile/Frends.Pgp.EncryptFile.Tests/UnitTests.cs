@@ -53,6 +53,20 @@ public class UnitTests : EncryptFileTestBase
     }
 
     [Test]
+    public void EncryptFile_WithPublicKeyString()
+    {
+        string expected = "-----BEGINPGPMESSAGE-----Version:BouncyCastle.NETCryptography(OpenPGP-only,net6.0)v2.0.0.1hIwDzoB5W4N7pN4B";
+
+        input.PublicKeySource = PublicKeySource.String;
+        input.PublicKeyString = File.ReadAllText(Path.Combine(GetWorkDir(), "pub.asc"));
+
+        var result = Pgp.EncryptFile(input, options, default);
+        var resultContent = File.ReadAllText(result.FilePath);
+
+        Assert.That(Regex.Replace(resultContent, @"[\s+]", string.Empty), Does.StartWith(Regex.Replace(expected, @"[\s+]", string.Empty)));
+    }
+
+    [Test]
     public void EncryptFile_ShouldSignAndEncryptWithDefaultValues()
     {
         options.SignWithPrivateKey = true;
@@ -138,6 +152,24 @@ public class UnitTests : EncryptFileTestBase
 
         // result has to start with pgp prefix, version comment and almost static 16 chars
         Assert.That(textResult, Does.Match(@"^-----BEGIN PGP MESSAGE-----[\r\n]+Version: BouncyCastle\.NET Cryptography \(OpenPGP-only, net6\.0\) v2\.0\.0\.1[\r\n]+hI(s|w)DzoB5W4N7pN4B"));
+        Assert.That(textResult, Does.EndWith($"-----END PGP MESSAGE-----{Environment.NewLine}"));
+    }
+
+    [Test]
+    public void EncryptFile_ShouldSignAndEncryptWithPrivateKeyString()
+    {
+        options.SignWithPrivateKey = true;
+        options.SigningSettings = new PgpEncryptSigningSettings
+        {
+            PrivateKeySource = PrivateKeySource.String,
+            PrivateKeyString = File.ReadAllText(Path.Combine(GetWorkDir(), GetPrivateKey())),
+            PrivateKeyPassphrase = GetPrivateKeyPassword(),
+        };
+
+        var result = Pgp.EncryptFile(input, options, default);
+        string textResult = File.ReadAllText(result.FilePath);
+
+        Assert.That(textResult, Does.StartWith($"-----BEGIN PGP MESSAGE-----{Environment.NewLine}Version: BouncyCastle.NET Cryptography (OpenPGP-only, net6.0) v2.0.0.1"));
         Assert.That(textResult, Does.EndWith($"-----END PGP MESSAGE-----{Environment.NewLine}"));
     }
 
