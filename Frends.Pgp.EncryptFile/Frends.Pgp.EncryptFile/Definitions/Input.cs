@@ -55,18 +55,6 @@ public class Input
     public string PublicKeyString { get; set; }
 
     /// <summary>
-    /// Legacy alias for PublicKeyPath.
-    /// </summary>
-    /// <example>C:\temp\publicKey.asc</example>
-    [Browsable(false)]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public string PublicKeyFile
-    {
-        get => PublicKeyPath;
-        set => PublicKeyPath = value;
-    }
-
-    /// <summary>
     /// ID of the correct key in the key ring (Optional).
     /// If left empty first suitable key in key ring is used.
     /// </summary>

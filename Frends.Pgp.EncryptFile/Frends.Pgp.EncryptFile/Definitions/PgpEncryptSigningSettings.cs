@@ -50,30 +50,6 @@ public class PgpEncryptSigningSettings
     public string PrivateKeyPassphrase { get; set; }
 
     /// <summary>
-    /// Legacy alias for PrivateKeyPath.
-    /// </summary>
-    /// <example>C:\temp\privateKeyFile.gpg</example>
-    [Browsable(false)]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public string PrivateKeyFile
-    {
-        get => PrivateKeyPath;
-        set => PrivateKeyPath = value;
-    }
-
-    /// <summary>
-    /// Legacy alias for PrivateKeyPassphrase.
-    /// </summary>
-    /// <example>passphrase</example>
-    [Browsable(false)]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public string PrivateKeyPassword
-    {
-        get => PrivateKeyPassphrase;
-        set => PrivateKeyPassphrase = value;
-    }
-
-    /// <summary>
     /// Hash algorithm to use with signature
     /// </summary>
     /// <example>PgpEncryptSignatureHashAlgorithm.Sha1</example>

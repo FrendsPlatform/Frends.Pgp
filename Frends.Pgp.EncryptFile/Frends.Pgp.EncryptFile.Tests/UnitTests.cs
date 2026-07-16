@@ -72,8 +72,8 @@ public class UnitTests : EncryptFileTestBase
         options.SignWithPrivateKey = true;
         options.SigningSettings = new PgpEncryptSigningSettings
         {
-            PrivateKeyFile = Path.Combine(GetWorkDir(), GetPrivateKey()),
-            PrivateKeyPassword = GetPrivateKeyPassword(),
+            PrivateKeyPath = Path.Combine(GetWorkDir(), GetPrivateKey()),
+            PrivateKeyPassphrase = GetPrivateKeyPassword(),
         };
 
         var result = Pgp.EncryptFile(input, options, default);
@@ -121,8 +121,8 @@ public class UnitTests : EncryptFileTestBase
         options.SignWithPrivateKey = true;
         options.SigningSettings = new PgpEncryptSigningSettings
         {
-            PrivateKeyFile = Path.Combine(GetWorkDir(), GetPrivateKey()),
-            PrivateKeyPassword = GetPrivateKeyPassword(),
+            PrivateKeyPath = Path.Combine(GetWorkDir(), GetPrivateKey()),
+            PrivateKeyPassphrase = GetPrivateKeyPassword(),
             SignatureHashAlgorithm = signatureHash,
         };
 
@@ -142,8 +142,8 @@ public class UnitTests : EncryptFileTestBase
         options.SignWithPrivateKey = true;
         options.SigningSettings = new PgpEncryptSigningSettings
         {
-            PrivateKeyFile = Path.Combine(GetWorkDir(), GetPrivateKey()),
-            PrivateKeyPassword = GetPrivateKeyPassword(),
+            PrivateKeyPath = Path.Combine(GetWorkDir(), GetPrivateKey()),
+            PrivateKeyPassphrase = GetPrivateKeyPassword(),
             SignatureHashAlgorithm = PgpEncryptSignatureHashAlgorithm.Sha256,
         };
 
