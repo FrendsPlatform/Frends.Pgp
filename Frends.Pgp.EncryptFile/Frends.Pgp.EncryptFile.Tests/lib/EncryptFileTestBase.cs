@@ -27,7 +27,7 @@ public class EncryptFileTestBase
         {
             SourceFilePath = Path.Combine(WorkDir, SourceFile),
             OutputFilePath = Path.Combine(WorkDir, EncryptedFile),
-            PublicKeyFile = Path.Combine(WorkDir, PublicKeyFile),
+            PublicKeyPath = Path.Combine(WorkDir, PublicKeyFile),
         };
 
         options = new Options

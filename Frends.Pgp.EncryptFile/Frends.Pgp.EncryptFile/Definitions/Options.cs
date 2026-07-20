@@ -61,7 +61,7 @@ public class Options
     /// <summary>
     /// File signing related settings
     /// </summary>
-    /// <example>PrivateKeyFile: C:\temp\privateKeyFile.gpg, PrivateKeyPassword: passphrase, SignatureHashAlgorithm: PgpEncryptSignatureHashAlgorithm.Sha1</example>
+    /// <example>PrivateKeyPath: C:\temp\privateKeyFile.gpg, PrivateKeyPassphrase: passphrase, SignatureHashAlgorithm: PgpEncryptSignatureHashAlgorithm.Sha1</example>
     [UIHint(nameof(SignWithPrivateKey), "", true)]
     public PgpEncryptSigningSettings SigningSettings { get; set; } = new PgpEncryptSigningSettings();
 
