@@ -133,11 +133,11 @@ public class UnitTests : SignFileTestBase
     public void SignFile_TestWithoutInputFile()
     {
         Input.SourceFilePath = Path.Combine(WorkDir, "nonexistingfile.txt");
-        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        var ex = Assert.Throws<Exception>((Action)(() => Pgp.SignFile(Input, Options, CancellationToken.None)));
         Assert.That(ex.Message, Does.StartWith("File to sign does not exist."));
 
         Input.SourceFilePath = string.Empty;
-        ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        ex = Assert.Throws<Exception>((Action)(() => Pgp.SignFile(Input, Options, CancellationToken.None)));
         Assert.That(ex.Message, Does.StartWith("File to sign does not exist."));
     }
 
@@ -147,13 +147,13 @@ public class UnitTests : SignFileTestBase
         Options.PrivateKey = Path.Combine(WorkDir, "nonexisting.gpg");
         Options.UseFileKey = true;
 
-        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        var ex = Assert.Throws<Exception>((Action)(() => Pgp.SignFile(Input, Options, CancellationToken.None)));
         Assert.That(ex.Message, Does.Contain("Private key file not found") | Does.Contain("Could not find file"));
 
         Options.PrivateKey = "invalid key content";
         Options.UseFileKey = false;
 
-        ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        ex = Assert.Throws<Exception>((Action)(() => Pgp.SignFile(Input, Options, CancellationToken.None)));
         Assert.That(ex.Message, Does.Contain("Failed to read private key") | Does.Contain("Can't find signing key"));
     }
 
@@ -162,7 +162,7 @@ public class UnitTests : SignFileTestBase
     {
         Options.PrivateKeyPassword = "wrongpassword";
 
-        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        var ex = Assert.Throws<Exception>((Action)(() => Pgp.SignFile(Input, Options, CancellationToken.None)));
         Assert.That(ex.Message, Does.Contain("Private key extraction failed"));
     }
 
@@ -172,7 +172,7 @@ public class UnitTests : SignFileTestBase
         _ = Pgp.SignFile(Input, Options, CancellationToken.None);
 
         Input.OutputFileExistsAction = OutputFileExistsAction.Error;
-        var ex = Assert.Throws<Exception>(() => Pgp.SignFile(Input, Options, CancellationToken.None));
+        var ex = Assert.Throws<Exception>((Action)(() => Pgp.SignFile(Input, Options, CancellationToken.None)));
         Assert.That(ex.Message, Does.Contain("Output file already exists."));
     }
 
