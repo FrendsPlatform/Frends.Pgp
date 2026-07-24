@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.0] - 2026-07-24
+
+### Fixed
+
+- Updated package copyright metadata to comply with Frends standards
+
 ## [1.4.0] - 2026-07-03
 
 ### Fixed
@@ -15,8 +21,8 @@
 
 ### Added
 
-- Input.PrivateKeyString — option to provide the private key directly as a string instead of a file path
-- Input.PassphraseEncoding — option to choose between Utf8 (default) and Legacy passphrase encoding
+- Input.PrivateKeyString ï¿½ option to provide the private key directly as a string instead of a file path
+- Input.PassphraseEncoding ï¿½ option to choose between Utf8 (default) and Legacy passphrase encoding
 
 ## [1.2.0] - 2026-05-11
 
