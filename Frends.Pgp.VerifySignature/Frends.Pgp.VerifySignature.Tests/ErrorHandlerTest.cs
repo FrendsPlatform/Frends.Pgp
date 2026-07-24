@@ -13,8 +13,8 @@ public class ErrorHandlerTest
     [Test]
     public void Should_Throw_Error_When_ThrowErrorOnFailure_Is_True()
     {
-        var ex = Assert.Throws<Exception>(() =>
-           Pgp.VerifySignature(DefaultInput(), DefaultOptions(), CancellationToken.None));
+        var ex = Assert.Throws<Exception>((Action)(() =>
+           Pgp.VerifySignature(DefaultInput(), DefaultOptions(), CancellationToken.None)));
         Assert.That(ex, Is.Not.Null);
     }
 
@@ -32,8 +32,8 @@ public class ErrorHandlerTest
     {
         var options = DefaultOptions();
         options.ErrorMessageOnFailure = CustomErrorMessage;
-        var ex = Assert.Throws<Exception>(() =>
-            Pgp.VerifySignature(DefaultInput(), options, CancellationToken.None));
+        var ex = Assert.Throws<Exception>((Action)(() =>
+            Pgp.VerifySignature(DefaultInput(), options, CancellationToken.None)));
         Assert.That(ex, Is.Not.Null);
         Assert.That(ex.Message, Contains.Substring(CustomErrorMessage));
     }

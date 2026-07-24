@@ -102,13 +102,13 @@ public class UnitTests : VerifySignatureTestBase
         Options.PublicKey = Path.Combine(WorkDir, "nonexisting.asc");
         Options.UseFileKey = true;
 
-        var ex = Assert.Throws<Exception>(() => Pgp.VerifySignature(Input, Options, CancellationToken.None));
+        var ex = Assert.Throws<Exception>((Action)(() => Pgp.VerifySignature(Input, Options, CancellationToken.None)));
         Assert.That(ex.Message, Does.Contain("Public key file not found"));
 
         Options.PublicKey = "invalid key content";
         Options.UseFileKey = false;
 
-        ex = Assert.Throws<Exception>(() => Pgp.VerifySignature(Input, Options, CancellationToken.None));
+        ex = Assert.Throws<Exception>((Action)(() => Pgp.VerifySignature(Input, Options, CancellationToken.None)));
         Assert.That(ex.Message, Does.Contain("not found in keyring"));
     }
 
@@ -146,7 +146,7 @@ public class UnitTests : VerifySignatureTestBase
         {
             Input.SignatureFilePath = invalidSigFile;
 
-            var ex = Assert.Throws<Exception>(() => Pgp.VerifySignature(Input, Options, CancellationToken.None));
+            var ex = Assert.Throws<Exception>((Action)(() => Pgp.VerifySignature(Input, Options, CancellationToken.None)));
             Assert.That(ex.Message, Does.Contain("Invalid signature file format") | Does.Contain("No signature found"));
         }
         finally
